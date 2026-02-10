@@ -1,0 +1,31 @@
+.venv start command:
+.venv\Scripts\Activate.ps1
+
+CREATE TABLE users (
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    email TEXT NOT NULL,
+    password TEXT NOT NULL
+);
+
+CREATE table tournaments (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name TEXT NOT NULL,
+    startDate DATE NOT NULL,
+    startTime TIME NOT NULL,
+    location TEXT NOT NULL,
+    courts INT NOT NULL
+);
+
+CREATE TABLE devices (
+    license_key varchar(200) PRIMARY KEY,
+    machine_id TEXT,
+    expiration_date DATETIME,
+    issued_at DATETIME DEFAULT current_timestamp,
+    owner INT DEFAULT 1,
+    tournament_id INT,
+    FOREIGN KEY(tournament_id) REFERENCES tournaments(id) 
+);
+
+curl.exe -X POST "http://localhost:3500/api/ivr/fetch" -H "Content-Type: application/json" -d '{\"machine_id\":\"123\",\"license_key\":\"PSH4-2ESW-S62E-J722\"}'
+
+curl.exe -X POST "http://localhost:3500/api/ivr/fetch" -H "Content-Type: application/json" -d '{\"machine_id\":\"123\"}'

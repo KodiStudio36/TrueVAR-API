@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create tournament</title>
+    <link rel="stylesheet" href="/static/css/tournament_create.css">
+</head>
+<body>
+    <h1>Create a tournament</h1>
+    <form action="">
+        <input type="text" placeholder="Name" required>
+        <label for="date">Pick a start date</label>
+        <input type="date" id="date" required>
+        <label for="time">Pick a start time</label>
+        <input type="time" id="time" required>
+        <input type="text" placeholder="Location" required>
+        <label for="courts">Number of courts (accepts only numbers!)</label>
+        <input type="text" id="courts" inputmode="numeric" pattern="[0-9]+" required>
+        <button type="submit">Create</button>
+    </form>
+    <script src="/static/js/tournament_create.js"></script>
+</body>
+</html>

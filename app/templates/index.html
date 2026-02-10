@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main page</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+</head>
+<body>
+    <div class="loggedInfo">
+        {% if username %}
+            Currently logged in?: Anoo <br>
+            as: {{ username }}
+        {% else %}
+            Currently logged in?: Nie
+        {% endif %}
+    </div>
+    <nav>
+        <ul>
+            <a href="/dashboard/auth/login"><li>Login here</li></a><br>
+            <a href="/logout"><li>Log out</li></a>
+        </ul>
+    </nav>
+    <h1 style="text-align: center;">Main page</h1>
+    <p>or head to</p>
+    <a href="/dashboard/" class="button">/dashboard/</a>
+</body>
+</html>

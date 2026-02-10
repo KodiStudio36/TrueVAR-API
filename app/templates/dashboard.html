@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+    <h1 style="text-align: center;">Dashboard</h1>
+    <a href="tournament/create" class="button">Create a tournament</a>
+    <h2>Tournaments</h2>
+    {% if tournamentData %}
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Start Date</th>
+                <th>Start Time</th>
+                <th>Location</th>
+                <th>Courts</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in tournamentData %}
+            <tr>
+                <td>{{row["id"]}}</td>
+                <td>{{row["name"]}}</td>
+                <td>{{row["startDate"]}}</td>
+                <td>{{row["startTime"]}}</td>
+                <td>{{row["location"]}}</td>
+                <td>{{row["courts"]}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+        {% else %}
+        <p>No tournaments yet!</p>
+    {% endif %}
+    <h2>Devices</h2>
+    {% if devicesData %}
+    <table class="devices">
+        <thead>
+            <tr>
+                <th>License key</th>
+                <th>Machine id</th>
+                <th>Expiration date</th>
+                <th>Issued at</th>
+                <th>Owner</th>
+                <th>Tournament id</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in devicesData %}
+            <tr>
+                <td data-col="license_key" data-id="{{ row['license_key'] }}">{{row["license_key"]}}</td>
+                <td data-col="machine_id" data-id="{{ row['license_key'] }}">{{row["machine_id"]}}</td>
+                <td data-col="expiration_date" data-id="{{ row['license_key'] }}">{{row["expiration_date"]}}</td>
+                <td data-col="issued_at" data-id="{{ row['license_key'] }}">{{row["issued_at"]}}</td>
+                <td data-col="owner" data-id="{{ row['license_key'] }}">{{row["owner"]}}</td>
+                <td data-col="tournament_id" data-id="{{ row['license_key'] }}">{{row["tournament_id"]}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+        {% else %}
+        <p>No tournaments yet!</p>
+        {% endif %}
+        <script src="/static/js/devicesDashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    background: #f4f6f8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loggedInfo {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 2rem;
+    color: #222;
+}
+
+.button {
+    padding: 15px 30px;
+    background: #2f7cf6;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background: #2567d6;
+}
+
+nav {
+    margin: 30px 0;
+    text-align: center;
+}
+ul {
+    list-style-type: none;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+ul a {
+    color: blue;
+    font-size: 1rem;
+}
+p {
+    color: gray;
+    margin: 10px 0 2px 0;
+    font-weight: 600;
+    font-size: 0.6rem;
+}

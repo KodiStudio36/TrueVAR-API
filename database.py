@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import SQLAlchemyError
 import secrets
 import datetime
+from datetime import date
 import sqlalchemy as db
 from enum import IntEnum
 
@@ -36,25 +37,40 @@ class Tournaments(Base):
     __tablename__ = "tournaments"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(Text, nullable=False)
+    name: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
     startDate: Mapped[str] = mapped_column(Date, nullable=False)
     startTime: Mapped[str] = mapped_column(Time, nullable=False)
     location: Mapped[str] = mapped_column(Text, nullable=False)
     courts: Mapped[int] = mapped_column(Integer, nullable=False)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "startDate": self.startDate.isoformat(),
+            "startTime": self.startTime.isoformat(),
+            "location": self.location,
+            "courts": self.courts
+        }
+
 class Devices(Base):
     __tablename__ = "devices"
 
+    name: Mapped[str] = mapped_column(Text, nullable=True)
     license_key: Mapped[str] = mapped_column(Text, primary_key=True)
     machine_id: Mapped[str] = mapped_column(Text, nullable=True)
     expiration_date: Mapped[DateTime] = mapped_column(DateTime)
     issued_at: Mapped[DateTime] = mapped_column(DateTime)
     owner: Mapped[int] = mapped_column(Integer)
-    tournament_id: Mapped[int] = mapped_column(Integer, ForeignKey("tournaments.id"))
+    tournament_id: Mapped[int] = mapped_column(Integer, ForeignKey("tournaments.id"), nullable=True)
 
 
 # initialize engine & SessionLocal (session local lebo readability)
 engine = db.create_engine("sqlite:///app.db", future=True)
+
+def init_db():
+    # THIS is what actually creates tables/files when first needed
+    Base.metadata.create_all(bind=engine)
 
 @event.listens_for(engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
@@ -67,9 +83,6 @@ SessionLocal = sessionmaker(
     autoflush=False,
     autocommit=False,
 )
-
-Base.metadata.create_all(engine)
-
 
 def InsertNewUSer(email: str, password: str):
     try:
@@ -105,16 +118,18 @@ def tournamentCreate(data):
         with SessionLocal() as session:
             tournament = Tournaments(
                 name=data["name"],
-                startDate=data["startDate"],
-                startTime=data["startTime"],
+                startDate=datetime.datetime.strptime(data["startDate"], "%Y-%m-%d").date(),
+                startTime=datetime.datetime.strptime(data["startTime"], "%H:%M").time(),
                 location=data["location"],
-                courts=data["courts"]
+                courts=int(data["courts"])
             )
             session.add(tournament)
             session.commit()
             return True
     except SQLAlchemyError:
         raise RuntimeError("Error while inserting a new tournament")
+    except ValueError:
+        raise RuntimeError("Invalid string to int conversion")
     
 def getAllTournaments():
     try:
@@ -124,6 +139,15 @@ def getAllTournaments():
             return results
     except SQLAlchemyError:
         raise RuntimeError("Error fetching tournaments...")
+    
+def getAllTournamentsNames():
+    try:
+        with SessionLocal() as session:
+            query = select(Tournaments.name)
+            results = session.scalars(query).all()
+            return results
+    except SQLAlchemyError:
+        raise RuntimeError("Error fetching tournament names...")
 
 def getAllDevicesData():
     try:
@@ -144,14 +168,15 @@ def editDevicesTableDb(license_key: str, column: str, value: str):
     except SQLAlchemyError:
         return False
     
-def InsertNewDevice(expdate: DateTime, owner: int):
+def InsertNewDevice(expdate: DateTime, owner: int, name: str):
     try:
         with SessionLocal() as session:
             device = Devices(
                 license_key=generate_licensekey(),
                 expiration_date=expdate,
                 issued_at=datetime.datetime.today(),
-                owner=owner
+                owner=owner,
+                name=name
             )
             session.add(device)
             session.commit()
@@ -168,13 +193,47 @@ def getDeviceByLicenseKey(license: str):
     except SQLAlchemyError:
         raise RuntimeError("Error inserting a new device")
     
-def setupMachineId(machine_id: str, license_key: str, device: Devices):
+def getTournamentByName(name: str):
     try:
         with SessionLocal() as session:
-            query = update(Devices).where(Devices.license_key == license_key).values(machine_id=machine_id)
-            session.execute(query)
-            session.commit()
-            session.refresh(device)
-            return device
+            query = select(Tournaments).where(Tournaments.name == name)
+            result = session.scalars(query).first()
+            return result
     except SQLAlchemyError:
-        return False
+        raise RuntimeError("Error getting tournament data")
+    
+def getTournamentById(id: str):
+    try:
+        with SessionLocal() as session:
+            query = select(Tournaments).where(Tournaments.id == id)
+            result = session.scalars(query).first()
+            return result
+    except SQLAlchemyError:
+        raise RuntimeError("Error getting tournament data")
+    
+def setupMachineId(machine_id: str, license_key: str, device: Devices):
+    with SessionLocal() as session:
+        query = update(Devices).where(Devices.license_key == license_key).values(machine_id=machine_id)
+        session.execute(query)
+        session.commit()
+        device = session.merge(device)
+        session.refresh(device)
+        return device
+    return False
+
+def checkDeviceAssignedTournament(license_key: str):
+    with SessionLocal() as session:
+        query = select(Devices.tournament_id).where(Devices.license_key == license_key)
+        result = session.scalars(query).first()
+        print(result)
+        return result
+    return False
+
+def assignDeviceToTournament(license_key: str, tournament_id: str):
+    with SessionLocal() as session:
+        query = update(Devices).where(Devices.license_key == license_key).values(tournament_id=int(tournament_id))
+        session.execute(query)
+        session.commit()
+        return True
+    return False
+

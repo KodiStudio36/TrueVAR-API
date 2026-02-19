@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // live updating of devices
     const deviceTable = document.querySelector(".devices")
+    const liveBtn = document.querySelector("#live")
     Array.from(deviceTable.querySelectorAll("td")).forEach(cell => {
         cell.addEventListener("click", async () => {
             let license_id = cell.attributes["data-id"].value
@@ -19,5 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             window.location.reload()
         });
+    });
+    liveBtn.addEventListener("click", () => {
+        fetch("/dashboard/golive")
     });
 });

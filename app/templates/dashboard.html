@@ -9,6 +9,8 @@
 <body>
     <h1 style="text-align: center;">Dashboard</h1>
     <a href="tournament/create" class="button">Create a tournament</a>
+    <br>
+    <button class="button" id="live">Go live</button>
     <h2>Tournaments</h2>
     {% if tournamentData %}
     <table>
@@ -24,7 +26,6 @@
         <tbody>
             {% for row in tournamentData %}
             <tr>
-                <td>{{row["id"]}}</td>
                 <td>{{row["name"]}}</td>
                 <td>{{row["startDate"]}}</td>
                 <td>{{row["startTime"]}}</td>
@@ -42,6 +43,7 @@
     <table class="devices">
         <thead>
             <tr>
+                <th>Name</th>
                 <th>License key</th>
                 <th>Machine id</th>
                 <th>Expiration date</th>
@@ -53,6 +55,7 @@
         <tbody>
             {% for row in devicesData %}
             <tr>
+                <td data-col="name" data-id="{{ row['license_key'] }}">{{row["name"]}}</td>
                 <td data-col="license_key" data-id="{{ row['license_key'] }}">{{row["license_key"]}}</td>
                 <td data-col="machine_id" data-id="{{ row['license_key'] }}">{{row["machine_id"]}}</td>
                 <td data-col="expiration_date" data-id="{{ row['license_key'] }}">{{row["expiration_date"]}}</td>
@@ -66,6 +69,6 @@
         {% else %}
         <p>No tournaments yet!</p>
         {% endif %}
-        <script src="/static/js/devicesDashboard.js"></script>
+        <script src="/static/js/dashboard.js"></script>
 </body>
 </html>

@@ -17,12 +17,13 @@ def user(email: str, passwrd: str):
 
 @click.command("device")
 @click.option("--expdate", required=True)
+@click.option("--name", default=None)
 @click.option("--owner", default=Owner.ME)
 @with_appcontext
-def device(expdate: str, owner: str):
+def device(expdate: str, owner: str, name: str):
     dt = datetime.datetime.strptime(expdate, "%Y/%m/%d")
 
-    uspesnost = InsertNewDevice(dt, owner)
+    uspesnost = InsertNewDevice(dt, owner, name)
 
     if not uspesnost:
         raise click.ClickException("Novy device nebol vytvoreny, chyba")

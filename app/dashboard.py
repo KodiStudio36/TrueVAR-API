@@ -1,6 +1,9 @@
+from datetime import datetime, timedelta
 from flask import Blueprint, request, render_template, session
+import pytz
 from werkzeug.security import check_password_hash
 from database import GetPasswordAndIdByEmail, tournamentCreate, getAllTournaments, getAllDevicesData, editDevicesTableDb
+from youtube import create_broadcast, create_stream, get_youtube_service
 from .decorators import login_required
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -36,6 +39,7 @@ def login():
 def dashboard():
     tournamentData = getAllTournaments()
     devicesData = getAllDevicesData()
+    print(devicesData)
     return render_template("dashboard.html",tournamentData=tournamentData, devicesData=devicesData)
 
 @dashboard_bp.route("/tournament/create", methods=["GET", "POST"])
@@ -62,7 +66,7 @@ def tournamentCreatePage():
 @login_required
 def editDevicesTable():
     data = request.get_json()
-    ALLOWED_COLUMNS = ["license_key", "machine_id", "expiration_date", "issued_at", "owner", "tournament_id"]
+    ALLOWED_COLUMNS = ["license_key", "machine_id", "expiration_date", "issued_at", "owner", "tournament_id", "name"]
 
     if data["column"] not in ALLOWED_COLUMNS:
         return {"message": "error, invalid column"}, 400
@@ -76,3 +80,13 @@ def editDevicesTable():
         return {"message": "Couldn't edit row (Serverside error)"}, 500
     
     return {"message": "ok"}, 200
+
+@dashboard_bp.route("/golive")
+@login_required
+def golive():
+    yt = get_youtube_service()
+
+    start = datetime.now(pytz.timezone("Europe/Bratislava")) + timedelta(minutes=10)
+
+    stream_id, ingest_addr, stream_name = create_stream(yt, "API Test Stream")
+    broadcast_id = create_broadcast(yt, "API Test Broadcast", "Testing api", start, privacy="private")

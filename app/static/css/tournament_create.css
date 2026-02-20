@@ -70,3 +70,20 @@ button {
 button:hover {
     background: #2567d6;
 }
+
+.stream {
+    margin: 0 0 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+}
+input[type="checkbox"] {
+    margin: 0 15px 0 0;
+    width: min-content;
+}
+.stream label {
+    color: black;
+}
+.stream label:hover {
+    text-decoration: underline;
+}

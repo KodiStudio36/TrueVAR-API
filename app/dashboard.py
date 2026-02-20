@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
-from flask import Blueprint, request, render_template, session
+from flask import Blueprint, redirect, request, render_template, session
 import pytz
 from werkzeug.security import check_password_hash
 from database import GetPasswordAndIdByEmail, tournamentCreate, getAllTournaments, getAllDevicesData, editDevicesTableDb
-from youtube import create_broadcast, create_stream, get_youtube_service
+from youtube import create_broadcast, create_playlist, create_stream, get_youtube_service, add_video_to_playlist
 from .decorators import login_required
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -49,16 +49,42 @@ def tournamentCreatePage():
         return render_template("tournament_create.html")
     else:
         data = request.get_json()
-        categories = ["name", "startDate", "startTime", "location", "courts"]
+        requiredCategories = ["name", "startDate", "startTime", "location", "courts"]
 
         # validacia vstupov
-        for i in categories:
+        for i in requiredCategories:
             if not data.get(i):
                 return {"message": "Bad request - missing data"}, 400
         
         # insert a new tournament
         status = tournamentCreate(data)
         assert status == True
+
+        if data["stream"]:
+            date_str = data.get("startDate")
+            time_str = data.get("startTime")
+
+            start_time = datetime.strptime(
+                f"{date_str} {time_str}",
+                "%Y-%m-%d %H:%M"
+            )
+
+            tz = pytz.timezone("Europe/Bratislava")
+            start_time = tz.localize(start_time)
+            yt = get_youtube_service()
+            video_ids = []
+
+            #creating playlist
+            playlist_id = create_playlist(yt, data.get("name"), "Zapas livestream")
+
+            for i in range(1, int(data.get("courts")) + 1):
+                title = f"{data.get("name")} court {i}"
+                video_id = create_broadcast(yt, title, f"Zapas livesteam z courtu {i}", start_time)
+                video_ids.append(video_id)
+
+            for i in video_ids:
+                status = add_video_to_playlist(yt, playlist_id, i)
+                assert status
 
         return {"message": "ok"}, 200
     
@@ -80,13 +106,3 @@ def editDevicesTable():
         return {"message": "Couldn't edit row (Serverside error)"}, 500
     
     return {"message": "ok"}, 200
-
-@dashboard_bp.route("/golive")
-@login_required
-def golive():
-    yt = get_youtube_service()
-
-    start = datetime.now(pytz.timezone("Europe/Bratislava")) + timedelta(minutes=10)
-
-    stream_id, ingest_addr, stream_name = create_stream(yt, "API Test Stream")
-    broadcast_id = create_broadcast(yt, "API Test Broadcast", "Testing api", start, privacy="private")

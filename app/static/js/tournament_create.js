@@ -6,7 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
             startDate: document.querySelectorAll("input")[1].value,
             startTime: document.querySelectorAll("input")[2].value,
             location: document.querySelectorAll("input")[3].value,
-            courts: document.querySelectorAll("input")[4].value
+            courts: document.querySelectorAll("input")[4].value,
+            stream: document.querySelectorAll("input")[5].checked
         }
         console.log(data)
         const response = await fetch("/dashboard/tournament/create", {

@@ -30,9 +30,6 @@ def get_youtube_service():
                 redirect_uri_trailing_slash=False,
                 success_message="Auth complete. You can close this tab.",
             )
-        # Save credentials for next run
-        with open("token.pickle", "wb") as token:
-            pickle.dump(creds, token)
 
     # Return authenticated YouTube API client
     return build("youtube", "v3", credentials=creds)
@@ -98,7 +95,49 @@ def create_broadcast(youtube, title: str, description: str, start_time, privacy=
     resp = request.execute()
     return resp["id"]
 
-
+def create_playlist(youtube, title, description, privacy="private"):
+    try:
+        request = youtube.playlists().insert(
+            part="snippet,status",
+            body={
+                "snippet": {
+                    "title": title,
+                    "description": description,
+                },
+                "status": {
+                    "privacyStatus": privacy
+                }
+            }
+        )
+        response = request.execute()
+        playlist_id = response["id"]
+        print(f"✅ Success: Created new playlist with ID: {playlist_id}")
+        return playlist_id
+    except Exception as e:
+        print(f"❌ Error: Failed to create playlist: {e}")
+        return None
+    
+def add_video_to_playlist(youtube, playlist_id, video_id):
+    try:
+        request = youtube.playlistItems().insert(
+            part="snippet",
+            body={
+                "snippet": {
+                    "playlistId": playlist_id,
+                    "resourceId": {
+                        "kind": "youtube#video",
+                        "videoId": video_id
+                    }
+                }
+            }
+        )
+        request.execute()
+        print(f"✅ Success: Broadcast ID {video_id} added to Playlist ID {playlist_id}.")
+        return True
+    except Exception as e:
+        print(f"❌ Error: Failed to add video to playlist: {e}")
+        return False
+    
 def bind_broadcast_to_stream(youtube, broadcast_id: str, stream_id: str):
     request = youtube.liveBroadcasts().bind(
         part="id,contentDetails",

@@ -1,9 +1,11 @@
+import mimetypes
 import pickle
 import pytz
 import os
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
@@ -145,3 +147,28 @@ def bind_broadcast_to_stream(youtube, broadcast_id: str, stream_id: str):
         streamId=stream_id
     )
     return request.execute()
+
+def set_thumbnail(youtube, video_id, image_file_stream, filename=None):
+    try:
+        # Detect MIME type from filename (fallback to jpeg)
+        if filename:
+            mimetype, _ = mimetypes.guess_type(filename)
+        else:
+            mimetype = "image/jpeg"
+
+        media = MediaIoBaseUpload(
+            image_file_stream,
+            mimetype=mimetype,
+            resumable=False
+        )
+
+        request = youtube.thumbnails().set(
+            videoId=video_id,
+            media_body=media
+        )
+        response = request.execute()
+        print(f"✅ Success: Uploaded thumbnail for Video ID {video_id}.")
+        return True
+    except Exception as e:
+        print(f"❌ Error: Failed to set thumbnail for Video ID {video_id}. {e}")
+        return False

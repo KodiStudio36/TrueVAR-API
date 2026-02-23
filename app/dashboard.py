@@ -3,7 +3,7 @@ from flask import Blueprint, redirect, request, render_template, session
 import pytz
 from werkzeug.security import check_password_hash
 from database import GetPasswordAndIdByEmail, tournamentCreate, getAllTournaments, getAllDevicesData, editDevicesTableDb
-from youtube import create_broadcast, create_playlist, create_stream, get_youtube_service, add_video_to_playlist
+from youtube import create_broadcast, create_playlist, get_youtube_service, add_video_to_playlist, set_thumbnail
 from .decorators import login_required
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -48,13 +48,20 @@ def tournamentCreatePage():
     if request.method == "GET":
         return render_template("tournament_create.html")
     else:
-        data = request.get_json()
-        requiredCategories = ["name", "startDate", "startTime", "location", "courts"]
+        data = {
+            "name": request.form.get("name"),
+            "startDate": request.form.get("startDate"),
+            "startTime": request.form.get("startTime"),
+            "location": request.form.get("location"),
+            "courts": request.form.get("courts"),
+            "stream": request.form.get("stream")
+        }
 
         # validacia vstupov
-        for i in requiredCategories:
-            if not data.get(i):
+        for key, value in data.items():
+            if value == None:
                 return {"message": "Bad request - missing data"}, 400
+        
         
         # insert a new tournament
         status = tournamentCreate(data)
@@ -68,6 +75,8 @@ def tournamentCreatePage():
                 f"{date_str} {time_str}",
                 "%Y-%m-%d %H:%M"
             )
+            # get images for thumbnails
+            images = request.files.getlist("image")
 
             tz = pytz.timezone("Europe/Bratislava")
             start_time = tz.localize(start_time)
@@ -82,8 +91,10 @@ def tournamentCreatePage():
                 video_id = create_broadcast(yt, title, f"Zapas livesteam z courtu {i}", start_time)
                 video_ids.append(video_id)
 
-            for i in video_ids:
-                status = add_video_to_playlist(yt, playlist_id, i)
+            for index, video_id in enumerate(video_ids):
+                # set thumbnails    
+                set_thumbnail(yt, video_id, images[index], images[index].filename)
+                status = add_video_to_playlist(yt, playlist_id, video_id)
                 assert status
 
         return {"message": "ok"}, 200

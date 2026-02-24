@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 break;
             case 200:
                 alert("Success")
-                // window.location.href = "/dashboard/"
+                window.location.href = "/dashboard/"
                 break;
         }
         return 0

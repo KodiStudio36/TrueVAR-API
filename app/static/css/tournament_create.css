@@ -52,6 +52,14 @@ label {
     color: #aeaeae;
     font-size: 0.9rem;
 }
+textarea {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 18px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
 input::placeholder {
     color: #aeaeae;
 }

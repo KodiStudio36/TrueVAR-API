@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Dashboard</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/tournament_dash.css">
+</head>
+<body>
+    {% if tournament == 0 %}
+    <h1 style="text-align: center;">This tournament doesn't exist</h1>
+    {% else %}
+    <h6 id="id" data-id="{{ tournament.id }}">id: {{ tournament.id }}</h6>
+    <h1>{{ tournament.name }}</h1>
+    <div class="golive-buttons">
+        <button id="golive1">Go Live</button>
+        <button id="golive2">Go Live</button>
+        <button id="startButton">Start</button>
+        <!-- GO LIVE BUTTONS HERE -->
+    </div>
+    <h2>Devices</h2>
+    {% if devicesData %}
+    <table class="devices">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>License key</th>
+                <th>Machine id</th>
+                <th>Expiration date</th>
+                <th>Issued at</th>
+                <th>Owner</th>
+                <th>Tournament id</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in devicesData %}
+            <tr>
+                <td data-col="name" data-id="{{ row['license_key'] }}">{{row["name"]}}</td>
+                <td data-col="license_key" data-id="{{ row['license_key'] }}">{{row["license_key"]}}</td>
+                <td data-col="machine_id" data-id="{{ row['license_key'] }}">{{row["machine_id"]}}</td>
+                <td data-col="expiration_date" data-id="{{ row['license_key'] }}">{{row["expiration_date"]}}</td>
+                <td data-col="issued_at" data-id="{{ row['license_key'] }}">{{row["issued_at"]}}</td>
+                <td data-col="owner" data-id="{{ row['license_key'] }}">{{row["owner"]}}</td>
+                <td data-col="tournament_id" data-id="{{ row['license_key'] }}">{{row["tournament_id"]}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No Devices!</p>
+    {% endif %}
+    <br>
+    <div class="golive-buttons">
+        <button id="schedule">Schedule Live</button>
+    </div>
+    <br>
+    <div class="tournament-section">
+        <div class="data">
+            <table>
+                <tr>
+                    <th colspan="2" class="heading">Tournament Data</th>
+                </tr>
+                <tr>
+                    <td class="heading">Title</td>
+                    <td data-col="name" class="editable">{{ tournament.name }}</td>
+                </tr>
+                <tr>
+                    <td class="heading">Description</td>
+                    <td data-col="desc" class="editable">{{ tournament.desc }}</td>
+                </tr>
+                <tr>
+                    <td class="heading">Start Date</td>
+                    <td data-col="startDate" class="editable">{{ tournament.startDate }}</td>
+                </tr>
+                <tr>
+                    <td class="heading">Start Time</td>
+                    <td data-col="startTime" class="editable">{{ tournament.startTime }}</td>
+                </tr>
+                <tr>
+                    <td class="heading">Courts</td>
+                    <td id="courtnum" data-scheduled="{{ tournament.scheduled }}">{{ tournament.courts }}</td>
+                </tr>
+                <tr>
+                    <td class="heading">Location</td>
+                    <td data-col="location" class="editable">{{ tournament.location }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="right">
+            <form action="" id="thumbnail">
+            </form>
+            <button class="button" id="thumbupdate">Update Thumbnails</button>
+        </div>
+    </div>
+    <br>
+    <h2>Pro tip: Ak chces zmenit Tournament data, klikni na ziadane pole a zmen to.</h2>
+    <script src="/static/js/tournament_edit.js"></script>
+    <script src="/static/js/tournament_dash_logic.js"></script>
+    {% endif %}
+</body>
+</html>

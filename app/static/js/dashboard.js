@@ -1,6 +1,15 @@
+
+var REMOVE_ID = null;
+
 document.addEventListener("DOMContentLoaded", () => {
     // live updating of devices
     const deviceTable = document.querySelector(".devices")
+    const trashButtons = document.querySelectorAll(".trashIcon")
+    const cancelButton = document.getElementById("cancel")
+    const removeButton = document.getElementById("remove")
+    const you_sureContainer = document.querySelector(".yousureCon")
+    const youSureHeading = you_sureContainer.querySelector(".displaytournament")
+
     Array.from(deviceTable.querySelectorAll("td")).forEach(cell => {
         cell.addEventListener("click", async () => {
             let license_id = cell.attributes["data-id"].value
@@ -20,5 +29,32 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             window.location.reload()
         });
+    });
+    Array.from(trashButtons).forEach(trash => {
+        trash.addEventListener("click", () => {
+            let remove_id = trash.attributes["data-id"].value
+            let remove_name = trash.attributes["data-name"].value
+            REMOVE_ID = remove_id
+            youSureHeading.innerHTML = remove_name
+            you_sureContainer.style.display = 'flex'
+        });
+    });
+    cancelButton.addEventListener("click", () => {
+        you_sureContainer.style.display = 'none'
+    });
+    removeButton.addEventListener("click",async () => {
+        const response = await fetch(`/dashboard/tournament/delete/${REMOVE_ID}`, {
+            method: "DELETE",
+        });
+        switch (response.status) {
+            case 200:
+                alert("success")
+                window.location.reload()
+                break;
+            case 500:
+                alert("Server Error")
+                break;
+        }
+        you_sureContainer.style.display = 'none'
     });
 });

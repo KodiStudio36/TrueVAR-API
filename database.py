@@ -1,5 +1,5 @@
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
-from sqlalchemy import Text, select, Date, Time, Integer, DateTime, ForeignKey, update, event
+from sqlalchemy import Boolean, Text, delete, select, Date, Time, Integer, DateTime, ForeignKey, update, event
 from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import SQLAlchemyError
 import secrets
@@ -38,19 +38,27 @@ class Tournaments(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    desc: Mapped[str] = mapped_column(Text, nullable=False)
     startDate: Mapped[str] = mapped_column(Date, nullable=False)
     startTime: Mapped[str] = mapped_column(Time, nullable=False)
     location: Mapped[str] = mapped_column(Text, nullable=False)
     courts: Mapped[int] = mapped_column(Integer, nullable=False)
+    scheduled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    video_ids: Mapped[str] = mapped_column(Text, nullable=True, default=None)
+    draft: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
+            "desc": self.desc,
             "startDate": self.startDate.isoformat(),
             "startTime": self.startTime.isoformat(),
             "location": self.location,
-            "courts": self.courts
+            "courts": self.courts,
+            "scheduled": self.scheduled,
+            "video_ids": self.video_ids,
+            "draft": self.draft
         }
 
 class Devices(Base):
@@ -118,10 +126,14 @@ def tournamentCreate(data):
         with SessionLocal() as session:
             tournament = Tournaments(
                 name=data["name"],
+                desc=data["desc"],
                 startDate=datetime.datetime.strptime(data["startDate"], "%Y-%m-%d").date(),
                 startTime=datetime.datetime.strptime(data["startTime"], "%H:%M").time(),
                 location=data["location"],
-                courts=int(data["courts"])
+                courts=int(data["courts"]),
+                scheduled=data["scheduled"], 
+                video_ids=data["video_ids"],
+                draft=data["draft"]
             )
             session.add(tournament)
             session.commit()
@@ -131,10 +143,19 @@ def tournamentCreate(data):
     except ValueError:
         raise RuntimeError("Invalid string to int conversion")
     
-def getAllTournaments():
+def getAllRealTournaments():
     try:
         with SessionLocal() as session:
-            query = select(Tournaments)
+            query = select(Tournaments).where(Tournaments.draft == False)
+            results = session.scalars(query).all()
+            return results
+    except SQLAlchemyError:
+        raise RuntimeError("Error fetching tournaments...")
+
+def getAllDraftTournaments():
+    try:
+        with SessionLocal() as session:
+            query = select(Tournaments).where(Tournaments.draft == True) # I did == True for readability
             results = session.scalars(query).all()
             return results
     except SQLAlchemyError:
@@ -167,6 +188,21 @@ def editDevicesTableDb(license_key: str, column: str, value: str):
             return True
     except SQLAlchemyError:
         return False
+    
+def editTournamentDb(id: str, column: str, value: str):
+    id = int(id)
+    if column == "startTime":
+        value = datetime.datetime.strptime(value, "%H:%M").time()
+    elif column == "startDate":
+        value = datetime.datetime.strptime(value, "%Y/%m/%d").date()
+    try:
+        with SessionLocal() as session:
+            query = update(Tournaments).where(Tournaments.id == id).values({getattr(Tournaments, column): value})
+            session.execute(query)
+            session.commit()
+            return True
+    except SQLAlchemyError:
+        raise RuntimeError("error inserting")
     
 def InsertNewDevice(expdate: DateTime, owner: int, name: str):
     try:
@@ -225,7 +261,6 @@ def checkDeviceAssignedTournament(license_key: str):
     with SessionLocal() as session:
         query = select(Devices.tournament_id).where(Devices.license_key == license_key)
         result = session.scalars(query).first()
-        print(result)
         return result
     return False
 
@@ -234,6 +269,25 @@ def assignDeviceToTournament(license_key: str, tournament_id: str):
         query = update(Devices).where(Devices.license_key == license_key).values(tournament_id=int(tournament_id))
         session.execute(query)
         session.commit()
+        return True
+    return False
+
+def getVideoIdsByTournamentId(tournament_id: str):
+    with SessionLocal() as session:
+        query = select(Tournaments.video_ids).where(Tournaments.id == int(tournament_id))
+        result = session.scalars(query).first()
+        return result
+    return False
+
+def deleteTournamentDb(id: str):
+    with SessionLocal() as session:
+        query = delete(Tournaments).where(Tournaments.id == int(id))
+        result = session.execute(query)
+        session.commit()
+
+        if result.rowcount == 0:
+            return False
+
         return True
     return False
 

@@ -4,22 +4,25 @@ const streamCheckbox = document.querySelector("#stream")
 
 // var ktora trackuje ci je treba poslat thumbnaily do backendu
 var thumbnails = false
+var WORKING = false
 
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelector("form").addEventListener("submit",async (e) => {
         e.preventDefault()
+        if (WORKING) return
+        WORKING = true
         const formData = new FormData()
-        const fields = ["name", "startDate", "startTime", "location", "courts"]
-
+        const fields = ["name", "desc", "startDate", "startTime", "location", "courts"]
+        
         for (let i = 0; i < fields.length; i++) {
-            formData.append(fields[i], document.querySelectorAll("input")[i].value)
+            formData.append(fields[i], document.querySelectorAll(".getmethoseDATA")[i].value)
         }
         formData.append("stream", streamCheckbox.checked)
 
         if (streamCheckbox.checked) {
             let courts = parseInt(courtsInput.value)
             if (isNaN(courts)) return
-
+            
             for (let i = 0; i < courts; i++) {
                 let file = document.querySelector(`#image${i + 1}`).files[0]
                 if (file == undefined) {
@@ -29,17 +32,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 formData.append("image", file)
             }
         }
-
+        
         // logger
         // for (const [key, value] of formData.entries()) {
-        //     console.log(key, value);
-        // }
-        const response = await fetch("/dashboard/tournament/create", {
+            //     console.log(key, value);
+            // }
+            const response = await fetch("/dashboard/tournament/create", {
             method: "POST",
             body: formData
         });
         console.log(`Response: ${response.status}`)
         data = await response.json()
+        WORKING = false
         switch (response.status) {
             case 400:
                 alert(data["message"])
@@ -48,11 +52,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("Success")
                 window.location.href = "/dashboard/"
                 break;
+            case 500:
+                alert("Server error")
+                break;
         }
         return 0
-    });
-    courtsInput.addEventListener("input", secondFormRender)
-    streamCheckbox.addEventListener("change", secondFormRender)
+        });
+        courtsInput.addEventListener("input", secondFormRender)
+        streamCheckbox.addEventListener("change", secondFormRender)
 });
 
 const secondFormRender = () => {

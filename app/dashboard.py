@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, redirect, request, render_template, session
 import pytz
 from werkzeug.security import check_password_hash
-from database import GetPasswordAndIdByEmail, tournamentCreate, getAllTournaments, getAllDevicesData, editDevicesTableDb
+from database import GetPasswordAndIdByEmail, tournamentCreate, getAllRealTournaments, getAllDevicesData, editDevicesTableDb, getTournamentById, editTournamentDb, getVideoIdsByTournamentId, getAllDraftTournaments, deleteTournamentDb
 from youtube import create_broadcast, create_playlist, get_youtube_service, add_video_to_playlist, set_thumbnail
 from .decorators import login_required
 
@@ -37,10 +37,10 @@ def login():
 @dashboard_bp.route("/")
 @login_required
 def dashboard():
-    tournamentData = getAllTournaments()
+    tournamentData = getAllRealTournaments()
     devicesData = getAllDevicesData()
-    print(devicesData)
-    return render_template("dashboard.html",tournamentData=tournamentData, devicesData=devicesData)
+    drafts = getAllDraftTournaments()
+    return render_template("dashboard.html",tournamentData=tournamentData, devicesData=devicesData, drafts=drafts)
 
 @dashboard_bp.route("/tournament/create", methods=["GET", "POST"])
 @login_required
@@ -50,11 +50,13 @@ def tournamentCreatePage():
     else:
         data = {
             "name": request.form.get("name"),
+            "desc": request.form.get("desc"),
             "startDate": request.form.get("startDate"),
             "startTime": request.form.get("startTime"),
             "location": request.form.get("location"),
             "courts": request.form.get("courts"),
-            "stream": request.form.get("stream")
+            "scheduled": request.form.get("stream"),
+            "draft": False
         }
 
         # validacia vstupov
@@ -62,12 +64,9 @@ def tournamentCreatePage():
             if value == None:
                 return {"message": "Bad request - missing data"}, 400
         
-        
-        # insert a new tournament
-        status = tournamentCreate(data)
-        assert status == True
+        data["scheduled"] = data["scheduled"].lower() == "true"
 
-        if data["stream"]:
+        if request.form.get("stream") == "true":
             date_str = data.get("startDate")
             time_str = data.get("startTime")
 
@@ -90,15 +89,68 @@ def tournamentCreatePage():
                 title = f"{data.get("name")} court {i}"
                 video_id = create_broadcast(yt, title, f"Zapas livesteam z courtu {i}", start_time)
                 video_ids.append(video_id)
-
+            
             for index, video_id in enumerate(video_ids):
                 # set thumbnails    
                 set_thumbnail(yt, video_id, images[index], images[index].filename)
                 status = add_video_to_playlist(yt, playlist_id, video_id)
                 assert status
 
-        return {"message": "ok"}, 200
+
+        # if this was scheduled right now, add the video id's to the db, else, put NULL there
+        if data["scheduled"]:
+            tempString = ""
+            first = False
+            for video_id in video_ids:
+                if not first:
+                    tempString = video_id
+                    first = True
+                    continue
+                tempString += f" {video_id}"
+            data["video_ids"] = tempString
+        else:
+            data["video_ids"] = None
+
+        status = tournamentCreate(data)
+
+        if status:
+            return {"message": "ok"}, 200
+        return {"message": "Server error"}, 500
     
+@dashboard_bp.route("/tournament/edit", methods=["POST"])
+@login_required
+def editTournament():
+    data = request.get_json()
+
+    status = editTournamentDb(data["id"], data["column"], data["value"])
+
+    if not status:
+        return {"message": "Couldn't edit row (Serverside error)"}, 500
+    
+    return {"message": "ok"}, 200
+
+@dashboard_bp.route("/tournament/thumbnailedit", methods=["POST"])
+@login_required
+def editThumbnail():
+    images = request.files.getlist("image")
+    tournament_id = request.form.get("tournament_id")
+    video_ids = getVideoIdsByTournamentId(tournament_id)
+    video_ids = video_ids.split(" ") # I did .split(" ") because the backend holds video ids in this format "[id] [id] [id]..."
+    
+    if not video_ids:
+        return {"message": "database error - error fetching video_ids"}, 500
+    yt  = get_youtube_service()
+
+    for i in range(len(video_ids)):
+        ans = set_thumbnail(yt, video_ids[i], images[i])
+        if not ans:
+            print(f"Error updating thumbnail {i}")
+            return {"message": "Youtube error - error updating thumbnail."}, 500
+    
+    return {"message": "ok"}, 200
+    
+        
+  
 @dashboard_bp.route("/devices/edit", methods=["POST"])
 @login_required
 def editDevicesTable():
@@ -117,3 +169,49 @@ def editDevicesTable():
         return {"message": "Couldn't edit row (Serverside error)"}, 500
     
     return {"message": "ok"}, 200
+
+@dashboard_bp.route("/tournament/<int:id>")
+@login_required
+def tournament_dash(id):
+    if request.method == "GET":
+        tournament_data = getTournamentById(id=id)
+        if tournament_data == None:
+            tournament_data = 0
+        devices = getAllDevicesData()
+        return render_template("tournament_dash.html", devicesData=devices, tournament=tournament_data)
+
+@dashboard_bp.route("/public/tournament/create", methods=["POST", "GET"])
+def public_tournament_create():
+    if request.method == "GET":
+        return render_template("public_tournament_create.html")
+    elif request.method == "POST":
+        data = {
+            "name": request.form.get("name"),
+            "desc": request.form.get("desc"),
+            "startDate": request.form.get("startDate"),
+            "startTime": request.form.get("startTime"),
+            "location": request.form.get("location"),
+            "courts": request.form.get("courts"),
+            "draft": True
+        }
+
+        # validacia vstupov
+        for key, value in data.items():
+            if value == None:
+                return {"message": "Bad request - missing data"}, 400
+        
+        data["scheduled"] = False
+        data["video_ids"] = None
+        
+        status = tournamentCreate(data)
+        if status:
+            return {"message": "ok"}, 200
+        return {"message": "Server error"}, 500
+    
+@dashboard_bp.route("/tournament/delete/<int:id>", methods=["DELETE"])
+@login_required
+def deleteTournament(id):
+    status = deleteTournamentDb(id)
+    if status:
+        return {"message": "ok"}, 200
+    return {"message": "Server error"}, 500

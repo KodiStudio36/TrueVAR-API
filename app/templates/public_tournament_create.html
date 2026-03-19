@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create tournament</title>
+    <title>Create tournament without LOGIN</title>
     <link rel="stylesheet" href="/static/css/tournament_create.css">
 </head>
 <body>
+    <div id="info" draft="true"></div>
     <div class="cont">
         <h1>Create a tournament</h1>
         <form action="">
@@ -19,17 +20,11 @@
             <input type="text" placeholder="Location" required class="getmethoseDATA">
             <label for="courts">Number of courts (accepts only numbers!)</label>
             <input type="text" id="courts" inputmode="numeric" pattern="[0-9]+" required class="getmethoseDATA">
-            <div class="stream">
-                <input type="checkbox" id="stream">
-                <label for="stream">I want to stream this tournament</label>
-            </div>
             <button type="submit">Create</button>
         </form>
+        <br>
+        <h2>Note: Creating a tournament this way will save it as a draft.</h2>
     </div>
-    <!-- IMAGE INPUT -->
-     <form class="imageInputs">
-     </form>
-    <!-- IMAGE INPUT -->
-    <script src="/static/js/tournament_create.js"></script>
+    <script src="/static/js/public_tournament_create.js"></script>
 </body>
 </html>

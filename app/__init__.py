@@ -2,14 +2,10 @@ from flask import Flask
 from .dashboard import dashboard_bp
 from .api import api_bp
 from dotenv import load_dotenv
-from flask_socketio import SocketIO
+from .extensions import app_socketio
 import os
-load_dotenv()
 
-socketio = SocketIO(
-    cors_allowed_origins="*",  # tighten in production
-    async_mode="threading",     # simplest; you can switch later
-)
+load_dotenv()
 
 def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
@@ -27,6 +23,6 @@ def create_app():
     init_db()
 
     from app import socket_events
-    socketio.init_app(app)
+    app_socketio.init_app(app)
 
     return app

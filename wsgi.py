@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from flask import render_template, session
-from app import create_app, socketio
+from app import create_app, app_socketio
 load_dotenv()
 
 app = create_app()
@@ -19,4 +19,4 @@ def logout():
 if __name__ == "__main__":
     PORT = int(os.getenv("PORT"))
     # app.run(port=PORT, debug=True, host="0.0.0.0")
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    app_socketio.run(app, host="0.0.0.0", port=5000, debug=True)

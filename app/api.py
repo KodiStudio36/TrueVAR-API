@@ -1,9 +1,11 @@
 import base64
 from datetime import datetime
 from flask import Blueprint, json, request, session
+from flask_socketio import disconnect, emit, join_room
+from app.extensions import app_socketio
 from app.socket_token import create_socket_token
-from .decorators import license_required
-from database import Devices
+from .decorators import license_required, login_required
+from database import Devices, getSidByMachineId
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
 api_bp = Blueprint("api", __name__)
@@ -38,3 +40,67 @@ def ivrFetch(device: Devices):
             "expires_in": 300,  # client info (seconds)
         }
         }, 200
+
+@api_bp.route("dashboard/start_livestream_unicast", methods=["POST"])
+@login_required
+def start_livestream_unicast():
+    data = request.get_json()
+
+    machine_id = data["machine_id"]
+
+    sid = getSidByMachineId(machine_id)
+
+    app_socketio.emit(
+        "start_livestream",
+        {},
+        to=sid
+    )
+    return {}, 200
+
+@api_bp.route("dashboard/stop_livestream_unicast", methods=["POST"])
+@login_required
+def stop_livestream_unicast():
+    data = request.get_json()
+
+    machine_id = data["machine_id"]
+
+    sid = getSidByMachineId(machine_id)
+
+    app_socketio.emit(
+        "stop_livestream",
+        {},
+        to=sid
+    )
+    return {}, 200
+
+@api_bp.route("dashboard/start_tournament_unicast", methods=["POST"])
+@login_required
+def start_tournament_unicast():
+    data = request.get_json()
+
+    machine_id = data["machine_id"]
+
+    sid = getSidByMachineId(machine_id)
+
+    app_socketio.emit(
+        "start_tournament",
+        {},
+        to=sid
+    )
+    return {}, 200
+
+@api_bp.route("dashboard/stop_tournament_unicast", methods=["POST"])
+@login_required
+def stop_tournament_unicast():
+    data = request.get_json()
+
+    machine_id = data["machine_id"]
+
+    sid = getSidByMachineId(machine_id)
+
+    app_socketio.emit(
+        "start_tournament",
+        {},
+        to=sid
+    )
+    return {}, 200

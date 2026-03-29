@@ -46,6 +46,7 @@ class Tournaments(Base):
     scheduled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     video_ids: Mapped[str] = mapped_column(Text, nullable=True, default=None)
     draft: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    tournament_state: Mapped[str] = mapped_column(Text, nullable=False, default="init")
 
     def to_dict(self):
         return {
@@ -70,7 +71,64 @@ class Devices(Base):
     expiration_date: Mapped[DateTime] = mapped_column(DateTime)
     issued_at: Mapped[DateTime] = mapped_column(DateTime)
     owner: Mapped[int] = mapped_column(Integer)
-    tournament_id: Mapped[int] = mapped_column(Integer, ForeignKey("tournaments.id"), nullable=True)
+    tournament_id: Mapped[int] = mapped_column(Integer, ForeignKey("tournaments.id"), ForeignKey("fights.tournament_id"), nullable=True)
+    court: Mapped[int] = mapped_column(Integer, nullable=True, default=None)
+    sid: Mapped[str] = mapped_column(Text, nullable=True, default=None)
+    current_fight: Mapped[int] = mapped_column(Integer, ForeignKey("fights.id"))
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "license_key": self.license_key,
+            "machine_id": self.machine_id,
+            "expiration_date": self.expiration_date.isoformat(),
+            "issued_at": self.issued_at.isoformat(),
+            "owner": self.owner,
+            "tournament_id": self.tournament_id,
+            "court": self.court,
+            "sid": self.sid,
+            "current_fight": self.current_fight
+        }
+
+class Fights(Base):
+    __tablename__ = "fights"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    tournament_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    title: Mapped[str] = mapped_column(Text)
+    category: Mapped[str] = mapped_column(Text)
+    hit_level: Mapped[int] = mapped_column(Integer)
+    state: Mapped[str] = mapped_column(Text)
+    clock: Mapped[str] = mapped_column(Text)
+    round: Mapped[int] = mapped_column(Integer)
+    blue_name: Mapped[str] = mapped_column(Text)
+    blue_flag: Mapped[str] = mapped_column(Text)
+    red_name: Mapped[str] = mapped_column(Text)
+    red_flag: Mapped[str] = mapped_column(Text)
+    blue_points: Mapped[str] = mapped_column(Text)
+    red_points: Mapped[str] = mapped_column(Text)
+    blue_penalty: Mapped[str] = mapped_column(Text)
+    red_penalty: Mapped[str] = mapped_column(Text)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "tournament_id": self.tournament_id,
+            "title": self.title,
+            "category": self.category,
+            "hit_level": self.hit_level,
+            "state": self.state,
+            "clock": self.clock,
+            "round": self.round,
+            "blue_name": self.blue_name,
+            "blue_flag": self.blue_flag,
+            "red_name": self.red_name,
+            "red_flag": self.red_flag,
+            "blue_points": self.blue_points,
+            "red_points": self.red_points,
+            "blue_penalty": self.blue_penalty,
+            "red_penalty": self.red_penalty
+        }
 
 
 # initialize engine & SessionLocal (session local lebo readability)
@@ -264,12 +322,23 @@ def checkDeviceAssignedTournament(license_key: str):
         return result
     return False
 
-def assignDeviceToTournament(license_key: str, tournament_id: str):
+def assignDeviceToTournament(license_key: str, tournament_id: str, court: int):
     with SessionLocal() as session:
-        query = update(Devices).where(Devices.license_key == license_key).values(tournament_id=int(tournament_id))
+        query = update(Devices).where(Devices.license_key == license_key).values(tournament_id=int(tournament_id), court=court)
         session.execute(query)
         session.commit()
         return True
+    return False
+
+def assignDeviceSid(sid: str, license_key: str):
+    with SessionLocal() as session:
+        query = update(Devices).where(Devices.license_key == license_key).values(sid=sid)
+        session.execute(query)
+        session.commit()
+        #
+        query = select(Devices.tournament_id).where(Devices.license_key == license_key)
+        result = session.scalars(query).first()
+        return result
     return False
 
 def getVideoIdsByTournamentId(tournament_id: str):
@@ -291,3 +360,107 @@ def deleteTournamentDb(id: str):
         return True
     return False
 
+def getSidByMachineId(machine_id: str):
+    with SessionLocal() as session:
+        query = select(Devices.sid).where(Devices.machine_id == machine_id)
+        result = session.scalars(query).first()
+        return result
+    return False
+
+def InsertNewFight(data):
+    try:
+        with SessionLocal() as session:
+            fight = Fights(
+                id=data["id"],
+                tournament_id=data["tournament_id"],
+                title=data["title"],
+                category=data["category"],
+                hit_level=data["hit_level"],
+                state=data["state"],
+                clock=data["clock"],
+                round=data["round"],
+                blue_name=data["blue_name"],
+                blue_flag=data["blue_flag"],
+                red_name=data["red_name"],
+                red_flag=data["red_flag"],
+                blue_points=" ".join(map(str, data["blue_points"])),
+                red_points=" ".join(map(str, data["red_points"])),
+                blue_penalty=" ".join(map(str, data["blue_penalty"])),
+                red_penalty=" ".join(map(str, data["red_penalty"]))
+            )
+            session.add(fight)
+            session.commit()
+            return True
+    except SQLAlchemyError:
+        raise RuntimeError("Inserting new user has failed")
+    
+def UpdateFight(id: int, data):
+    try:
+        with SessionLocal() as session:
+            query = update(Fights).where(Fights.id == id).values(
+                tournament_id=data["tournament_id"],
+                title=data["title"],
+                category=data["category"],
+                hit_level=data["hit_level"],
+                state=data["state"],
+                clock=data["clock"],
+                round=data["round"],
+                blue_name=data["blue_name"],
+                blue_flag=data["blue_flag"],
+                red_name=data["red_name"],
+                red_flag=data["red_flag"],
+                blue_points=" ".join(map(str, data["blue_points"])),
+                red_points=" ".join(map(str, data["red_points"])),
+                blue_penalty=" ".join(map(str, data["blue_penalty"])),
+                red_penalty=" ".join(map(str, data["red_penalty"])),
+            )
+            session.execute(query)
+            session.commit()
+            return True
+    except SQLAlchemyError:
+        raise RuntimeError("Inserting new user has failed")
+
+def getFightByTournamentIdAndId(tournament_id: int, fight_id: int):
+    with SessionLocal() as session:
+        query = select(Fights).where(Fights.tournament_id, tournament_id and Fights.id == fight_id)
+        result = session.scalars(query).first()
+
+        if result.rowcount == 0:
+            return True
+        return False
+    return False
+def getTournamentIdByLicenseKey(license_key: str):
+    with SessionLocal() as session:
+        query = select(Devices.tournament_id).where(Devices.license_key == license_key)
+        result = session.scalars(query).first()
+        return result
+    return False
+
+def assignDeviceFightId(license_key: str, fight_id: int):
+    with SessionLocal() as session:
+        query = update(Devices).where(Devices.license_key == license_key).values(current_fight=fight_id)
+        session.execute(query)
+        session.commit()
+        return True
+    return False
+
+def getCurrentFightByLicenseKey(license_key: str):
+    with SessionLocal() as session:
+        query = select(Devices.current_fight).where(Devices.license_key == license_key)
+        result = session.scalars(query).first()
+        return result
+    return False
+
+def getFightById(id: int):
+    with SessionLocal() as session:
+        query = select(Fights).where(Fights.id == id)
+        result = session.scalars(query).first()
+        return result
+    return False
+
+def getDeviceByLicenseKey(license_key: int):
+    with SessionLocal() as session:
+        query = select(Devices).where(Devices.license_key == license_key)
+        result = session.scalars(query).first()
+        return result
+    return False

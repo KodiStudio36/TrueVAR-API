@@ -9,11 +9,14 @@ const updateThumbnailsBtn = document.querySelector("#thumbupdate")
 
 const number_of_courts = parseInt(courtElement.innerHTML)
 const scheduled = courtElement.attributes["data-scheduled"].value
-const tournament_id = document.querySelector("h6").attributes["data-id"].value
+const informationHeader = document.querySelector("h6") 
+const tournament_id = informationHeader.attributes["data-id"].value
+const tournament_state = informationHeader.attributes["data-state"].value
 var UPDATING = false
 
-if (scheduled) {
+if (scheduled != "False") {
     schedule.innerHTML = "Scheduled."
+    schedule.classList.add("disabled")
 }
 
 const main = () => {
@@ -72,4 +75,95 @@ golive2.addEventListener("click", () => {});
 startButton.addEventListener("click", () => {});
 schedule.addEventListener("click", () => {
     if (scheduled) return
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    const goLiveButton1s = document.querySelectorAll(".goLiveButton1")
+    const goLiveButton2s = document.querySelectorAll(".goLiveButton2")
+    const startStreamBtns = document.querySelectorAll(".startStreamBtn")
+
+    Array.from(goLiveButton1s).forEach(button => {
+        button.addEventListener("click", async () => {
+            let machine_id = button.attributes["data-machine-id"].value
+            let action = button.attributes["data-action"].value
+            if (action == "start") {
+                button.setAttribute("data-action", "stop")
+                button.classList.add("live")
+                button.innerHTML = "Stop Live"
+                // ready up the second button
+                document.querySelector(`.goLiveButton2[data-machine-id="${machine_id}"]`).className = "goLiveButton2 active"
+                console.log("starting live 1")
+            } else {
+                if (document.querySelector(`.goLiveButton2[data-machine-id="${machine_id}"]`).classList.contains("live")) return
+                button.setAttribute("data-action", "start")
+                button.classList.remove("live")
+                button.innerHTML = "Go Live"
+                // disable second golive and start stream button
+                document.querySelector(`.goLiveButton2[data-machine-id="${machine_id}"]`).className = "goLiveButton2 disabled"
+                document.querySelector(`.startStreamBtn[data-machine-id="${machine_id}"]`).className = "startStreamBtn disabled"
+                console.log("shutting down live 1")
+            }
+            
+            await fetch(`/api/dashboard/${action}_livestream_unicast`, {
+                method: "POST",
+                headers: {"Content-type": "application/json"},
+                body: JSON.stringify({
+                    machine_id: machine_id
+                })
+            });
+        });
+    });
+    Array.from(goLiveButton2s).forEach(button => {
+        button.addEventListener("click",async () => {
+            if (button.classList.contains("disabled")) return
+
+            let machine_id = button.attributes["data-machine-id"].value
+            let action = button.attributes["data-action"].value
+            
+            if (action == "start") {
+                button.setAttribute("data-action", "stop")
+                button.classList.replace("active", "live")
+                button.innerHTML = "Stop Live"
+                // ready up the third button
+                document.querySelector(`.startStreamBtn[data-machine-id="${machine_id}"]`).className = "startStreamBtn active"
+                console.log("starting live 2")
+            } else {
+                if (document.querySelector(`.startStreamBtn[data-machine-id="${machine_id}"]`).classList.contains("live")) return
+
+                button.setAttribute("data-action", "start")
+                button.classList.replace("live", "active")
+                button.innerHTML = "Go Live"
+                // disable start stream button
+                document.querySelector(`.startStreamBtn[data-machine-id="${machine_id}"]`).className = "startStreamBtn disabled"
+                console.log("shutting down live 2")
+            }
+        });
+    });
+    Array.from(startStreamBtns).forEach(button => {
+        button.addEventListener("click",async () => {
+            if (button.classList.contains("disabled")) return
+
+            let machine_id = button.attributes["data-machine-id"].value
+            let action = button.attributes["data-action"].value
+            
+            await fetch(`/api/dashboard/${action}_tournament_unicast`, {
+                method: "POST",
+                headers: {"Content-type": "application/json"},
+                body: JSON.stringify({
+                    machine_id: machine_id
+                })
+            });
+            if (action == "start") {
+                button.setAttribute("data-action", "stop")
+                button.classList.replace("active", "live")
+                button.innerHTML = "Stop stream"
+                console.log("starting stream")
+            } else {
+                button.setAttribute("data-action", "start")
+                button.classList.replace("live", "active")
+                button.innerHTML = "Start stream"
+                console.log("stopping stream")
+            }
+        });
+    });
 });

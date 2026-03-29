@@ -11,7 +11,7 @@
     {% if tournament == 0 %}
     <h1 style="text-align: center;">This tournament doesn't exist</h1>
     {% else %}
-    <h6 id="id" data-id="{{ tournament.id }}">id: {{ tournament.id }}</h6>
+    <h6 id="id" data-id="{{ tournament.id }}" data-state="{{ tournament['tournament_state'] }}">id: {{ tournament.id }}</h6>
     <h1>{{ tournament.name }}</h1>
     <div class="golive-buttons">
         <button id="golive1">Go Live</button>
@@ -25,24 +25,22 @@
         <thead>
             <tr>
                 <th>Name</th>
-                <th>License key</th>
-                <th>Machine id</th>
-                <th>Expiration date</th>
-                <th>Issued at</th>
-                <th>Owner</th>
-                <th>Tournament id</th>
+                <th>Court</th>
+                <th>Status</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for row in devicesData %}
-            <tr>
+            <tr class="deviceRow" data-machine-id="{{ row['machine_id'] }}">
                 <td data-col="name" data-id="{{ row['license_key'] }}">{{row["name"]}}</td>
-                <td data-col="license_key" data-id="{{ row['license_key'] }}">{{row["license_key"]}}</td>
-                <td data-col="machine_id" data-id="{{ row['license_key'] }}">{{row["machine_id"]}}</td>
-                <td data-col="expiration_date" data-id="{{ row['license_key'] }}">{{row["expiration_date"]}}</td>
-                <td data-col="issued_at" data-id="{{ row['license_key'] }}">{{row["issued_at"]}}</td>
-                <td data-col="owner" data-id="{{ row['license_key'] }}">{{row["owner"]}}</td>
-                <td data-col="tournament_id" data-id="{{ row['license_key'] }}">{{row["tournament_id"]}}</td>
+                <td data-col="court" data-id="{{ row['license_key'] }}">{{row["court"]}}</td>
+                <td>STATUS</td>
+                <td class="actionButtons">
+                    <button data-machine-id="{{ row['machine_id'] }}" class="goLiveButton1" data-action="start">Go Live</button>
+                    <button data-machine-id="{{ row['machine_id'] }}" class="goLiveButton2 disabled" data-action="start">Go Live</button>
+                    <button data-machine-id="{{ row['machine_id'] }}" class="startStreamBtn disabled" data-action="start">Start</button>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

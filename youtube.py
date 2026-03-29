@@ -25,7 +25,7 @@ def get_youtube_service():
             # This opens browser for OAuth login
             flow = InstalledAppFlow.from_client_secrets_file("client_secret.json", SCOPES)
 
-            flow.redirect_uri = "http://localhost:3500/oauth2callback"
+            flow.redirect_uri = "http://localhost:5000/oauth2callback"
             creds = flow.run_local_server(
                 host="localhost",
                 port=3500,

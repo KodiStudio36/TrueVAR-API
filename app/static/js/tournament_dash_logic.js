@@ -15,8 +15,10 @@ const tournament_state = informationHeader.attributes["data-state"].value
 var UPDATING = false
 
 if (scheduled != "False") {
-    schedule.innerHTML = "Scheduled."
     schedule.classList.add("disabled")
+    schedule.innerHTML = "Scheduled."
+} else {
+    updateThumbnailsBtn.style.display = 'none'
 }
 
 const main = () => {
@@ -33,9 +35,9 @@ document.addEventListener("DOMContentLoaded", main)
 updateThumbnailsBtn.addEventListener("click",async () => {
     if (UPDATING == true || !scheduled) return
     UPDATING = true
-    const thumbnailInputs = document.querySelectorAll(".collect")
     var data = new FormData()
     var INVALID = false
+    const thumbnailInputs = document.querySelectorAll(".collect")
     Array.from(thumbnailInputs).forEach(element => {
         let file = element.files[0]
         
@@ -73,8 +75,50 @@ updateThumbnailsBtn.addEventListener("click",async () => {
 golive1.addEventListener("click", () => {});
 golive2.addEventListener("click", () => {});
 startButton.addEventListener("click", () => {});
-schedule.addEventListener("click", () => {
-    if (scheduled) return
+schedule.addEventListener("click",async () => {
+    if (scheduled != "False") return
+
+    const thumbnailInputs = document.querySelectorAll(".collect")
+    let elements_which_I_want_data_from = document.querySelectorAll(".editable")
+    let data = new FormData()
+
+    data.append("name", elements_which_I_want_data_from[0].innerHTML)
+    data.append("desc", elements_which_I_want_data_from[1].innerHTML)
+    data.append("startDate", elements_which_I_want_data_from[2].innerHTML)
+    data.append("startTime", elements_which_I_want_data_from[3].innerHTML)
+    data.append("location", elements_which_I_want_data_from[4].innerHTML)
+    data.append("courts", document.querySelector("#courtnum").innerHTML)
+    data.append("id", tournament_id)
+
+    var INVALID = false
+    Array.from(thumbnailInputs).forEach(element => {
+        let file = element.files[0]
+        
+        if (file == undefined) {
+            element.style.outline = '1px solid red'
+            INVALID = true
+            alert("Nezadal si thumbnaily")
+        } else {
+            element.style.outline = ''
+        }
+        data.append("image", file)
+    });
+    if (INVALID) return
+
+    const response = await fetch("/dashboard/tournament/schedule", {
+        method: "POST",
+        body: data
+    });
+    switch (response.status) {
+        case 500:
+            alert("server error")
+            break;
+        case 200:
+            alert("Tournament successfully scheduled. Check youtube studio for more informantion.")
+            window.location.reload()
+            break;
+    }
+    return
 });
 
 document.addEventListener("DOMContentLoaded", () => {

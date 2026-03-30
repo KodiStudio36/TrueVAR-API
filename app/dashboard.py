@@ -215,3 +215,64 @@ def deleteTournament(id):
     if status:
         return {"message": "ok"}, 200
     return {"message": "Server error"}, 500
+
+@dashboard_bp.route("/tournament/schedule", methods=["POST"])
+@login_required
+def schedule():
+    tournanent_id = request.form.get("id")
+    data = {
+        "name": request.form.get("name"),
+        "desc": request.form.get("desc"),
+        "startDate": request.form.get("startDate"),
+        "startTime": request.form.get("startTime"),
+        "location": request.form.get("location"),
+        "courts": request.form.get("courts"),
+        "draft": False
+    }
+    print(data)
+    # validacia vstupov
+    for key, value in data.items():
+        if value == None:
+            return {"message": "Bad request - missing data"}, 400
+        
+    # yt section
+    data["startTime"] = data["startTime"][:5]
+    start_time = datetime.strptime(
+        f"{data["startDate"]} {data["startTime"]}",
+        "%Y-%m-%d %H:%M"
+    )
+
+    images = request.files.getlist("image")
+    tz = pytz.timezone("Europe/Bratislava")
+    start_time = tz.localize(start_time)
+    yt = get_youtube_service()
+    video_ids = []
+
+    # creating playlist
+    playlist_id = create_playlist(yt, data.get("name"), "Zapas livestream")
+
+    for i in range(1, int(data.get("courts")) + 1):
+        title = f"{data.get("name")} court {i}"
+        video_id = create_broadcast(yt, title, f"Zapas livesteam z courtu {i}", start_time)
+        video_ids.append(video_id)
+    
+    for index, video_id in enumerate(video_ids):
+        # set thumbnails    
+        set_thumbnail(yt, video_id, images[index], images[index].filename)
+        status = add_video_to_playlist(yt, playlist_id, video_id)
+        assert status
+    
+    tempString = ""
+    first = False
+    for video_id in video_ids:
+        if not first:
+            tempString = video_id
+            first = True
+            continue
+        tempString += f" {video_id}"
+    data["video_ids"] = tempString
+    data["scheduled"] = True
+    for key, value in data.items():
+        editTournamentDb(tournanent_id, key, value)
+
+    return {"message": "ok"}, 200

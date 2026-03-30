@@ -247,12 +247,14 @@ def editDevicesTableDb(license_key: str, column: str, value: str):
     except SQLAlchemyError:
         return False
     
-def editTournamentDb(id: str, column: str, value: str):
+def editTournamentDb(id: str, column, value: str):
     id = int(id)
     if column == "startTime":
         value = datetime.datetime.strptime(value, "%H:%M").time()
     elif column == "startDate":
-        value = datetime.datetime.strptime(value, "%Y/%m/%d").date()
+        value = datetime.datetime.strptime(value, "%Y-%m-%d").date()
+    elif column == "courts":
+        value = int(value)
     try:
         with SessionLocal() as session:
             query = update(Tournaments).where(Tournaments.id == id).values({getattr(Tournaments, column): value})

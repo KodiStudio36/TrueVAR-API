@@ -55,7 +55,7 @@ def on_connect(auth):
     emit("tournaments_list", {
         "message" : "ok",
         "license_key": license_key,
-        "tournaments": all_tournaments
+        "tournaments": [x.to_dict() for x in all_tournaments]
         })
 
 @app_socketio.on("select_tournament")

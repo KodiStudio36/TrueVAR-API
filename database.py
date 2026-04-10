@@ -255,7 +255,7 @@ def getAllDraftTournaments():
 def getAllTournamentsNames():
     try:
         with SessionLocal() as session:
-            query = select(Tournaments.name)
+            query = select(Tournaments)
             results = session.scalars(query).all()
             return results
     except SQLAlchemyError:
@@ -634,3 +634,11 @@ def clearDeviceCourtTournamentIdSidState(machine_id: str):
     except SQLAlchemyError:
         raise RuntimeError("Error")
     
+def getDevicesByTournamentId(tournament_id: int):
+    try:
+        with SessionLocal() as session:
+            query = select(Devices).where(Devices.tournament_id == tournament_id)
+            result = session.scalars(query).all()
+            return result
+    except SQLAlchemyError:
+        raise RuntimeError("Error")

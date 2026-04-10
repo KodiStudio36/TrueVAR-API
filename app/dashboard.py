@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, redirect, request, render_template, session
 import pytz
 from werkzeug.security import check_password_hash
-from database import GetPasswordAndIdByEmail, tournamentCreate, getAllRealTournaments, getAllDevicesData, editDevicesTableDb, getTournamentById, editTournamentDb, getVideoIdsByTournamentId, getAllDraftTournaments, deleteTournamentDb, getAllStreamKeys, getScheduledTimesByStreamKey, insertNewCourtSchedule, deleteCourtScheduleTimesByTournamentId, getStreamIdByStreamKey
+from database import GetPasswordAndIdByEmail, getDevicesByTournamentId, tournamentCreate, getAllRealTournaments, getAllDevicesData, editDevicesTableDb, getTournamentById, editTournamentDb, getVideoIdsByTournamentId, getAllDraftTournaments, deleteTournamentDb, getAllStreamKeys, getScheduledTimesByStreamKey, insertNewCourtSchedule, deleteCourtScheduleTimesByTournamentId, getStreamIdByStreamKey
 from youtube import create_broadcast, create_playlist, get_youtube_service, add_video_to_playlist, set_thumbnail, delete_broadcast, bind_broadcast_to_stream
 from .decorators import login_required
 
@@ -216,7 +216,7 @@ def tournament_dash(id):
         tournament_data = getTournamentById(id=id)
         if tournament_data == None:
             tournament_data = 0
-        devices = getAllDevicesData()
+        devices = getDevicesByTournamentId(id)
         return render_template("tournament_dash.html", devicesData=devices, tournament=tournament_data)
 
 @dashboard_bp.route("/public/tournament/create", methods=["POST", "GET"])

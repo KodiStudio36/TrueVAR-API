@@ -3,7 +3,7 @@ from flask import request
 from flask_socketio import disconnect, emit, join_room
 from app.extensions import app_socketio
 from app.socket_token import verify_socket_token
-from database import InsertNewFight, UpdateFight, assignDeviceFightId, assignDeviceSid, getAllTournamentsNames, getTournamentByName, checkDeviceAssignedTournament, getTournamentById, assignDeviceToTournament, Tournaments, getTournamentIdByLicenseKey, getFightById, getCurrentFightByLicenseKey, getDeviceByLicenseKey, getFightByTournamentIdAndId
+from database import InsertNewFight, UpdateFight, assignDeviceFightId, assignDeviceSid, getAllTournamentsNames, getTournamentByName, checkDeviceAssignedTournament, getTournamentById, assignDeviceToTournament, Tournaments, getTournamentIdByLicenseKey, getFightById, getCurrentFightByLicenseKey, getDeviceByLicenseKey, getFightByTournamentIdAndId, getStreamKeyByTournamentIdAnCourt
 
 SOCKET_TOKEN_TTL_SECONDS = 300
 
@@ -35,10 +35,14 @@ def on_connect(auth):
     if tournament_id:
         data = getTournamentById(tournament_id).to_dict()
         print(data)
+        device = getDeviceByLicenseKey(license_key)
+        data["stream_key"] = getStreamKeyByTournamentIdAnCourt(tournament_id, device.court)
+
         emit("tournament_data", {"message": "ok", "data": data})
         return
 
     # You can put them into the socket session (per-connection context)
+    
     # request.environ["license_key"] = license_key
     # request.environ["machine_id"] = machine_id
 
@@ -46,6 +50,7 @@ def on_connect(auth):
     # join_room(f"lic:{license_key}")
 
     all_tournaments = getAllTournamentsNames()
+    print(all_tournaments)
     print("Success conn")
     emit("tournaments_list", {
         "message" : "ok",
@@ -66,17 +71,19 @@ def tournament_data(req):
         emit("tournament_data", {"message": "error", "data": {}})
         return
     
-    data: Tournaments = getTournamentByName(tournament_name)
+    tournament: Tournaments = getTournamentByName(tournament_name)
     print("Printing from select_tournament")
-    print(data)
+    print(tournament)
 
-    if not data:
+    if not tournament:
         emit("tournament_data", {"message": "error", "data": {}})
         return
     
-    assignDeviceToTournament(license_key, data.id, court)
+    assignDeviceToTournament(license_key, tournament.id, court)
 
-    emit("tournament_data", {"message": "ok", "data": data.to_dict()})
+    data = tournament.to_dict()
+    data["stream_key"] = getStreamKeyByTournamentIdAnCourt(tournament.id, court)
+    emit("tournament_data", {"message": "ok", "data": data})
     return
 
 @app_socketio.on("confirm_connection")

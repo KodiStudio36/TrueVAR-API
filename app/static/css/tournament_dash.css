@@ -104,10 +104,12 @@ h1 {
 }
 .actionButtons button.startStreamBtn.disabled,
 .actionButtons button.goLiveButton2.disabled,
-button#schedule.disabled {
+button#schedule.disabled,
+#startButton.disabled,
+#golive2.disabled {
     background-color: gray !important;
     cursor: not-allowed !important;
 }
-.actionButtons button.live {
+button.live {
     background-color: red !important;
 }

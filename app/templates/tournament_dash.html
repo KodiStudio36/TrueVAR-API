@@ -6,6 +6,7 @@
     <title>Tournament Dashboard</title>
     <link rel="stylesheet" href="/static/css/dashboard.css">
     <link rel="stylesheet" href="/static/css/tournament_dash.css">
+    <link rel="stylesheet" href="/static/css/loading_animation.css">
 </head>
 <body>
     {% if tournament == 0 %}
@@ -14,9 +15,9 @@
     <h6 id="id" data-id="{{ tournament.id }}" data-state="{{ tournament['tournament_state'] }}">id: {{ tournament.id }}</h6>
     <h1>{{ tournament.name }}</h1>
     <div class="golive-buttons">
-        <button id="golive1">Go Live</button>
-        <button id="golive2">Go Live</button>
-        <button id="startButton">Start</button>
+        <button id="golive1" data-action="start">Go Live</button>
+        <button id="golive2" data-action="start">Go Live</button>
+        <button id="startButton" data-action="start">Start stream</button>
         <!-- GO LIVE BUTTONS HERE -->
     </div>
     <h2>Devices</h2>
@@ -32,14 +33,14 @@
         </thead>
         <tbody>
             {% for row in devicesData %}
-            <tr class="deviceRow" data-machine-id="{{ row['machine_id'] }}">
+            <tr class="deviceRow" data-machine-id="{{ row['machine_id'] }}" data-device-state="{{ row['state'] }}">
                 <td data-col="name" data-id="{{ row['license_key'] }}">{{row["name"]}}</td>
                 <td data-col="court" data-id="{{ row['license_key'] }}">{{row["court"]}}</td>
                 <td>STATUS</td>
                 <td class="actionButtons">
                     <button data-machine-id="{{ row['machine_id'] }}" class="goLiveButton1" data-action="start">Go Live</button>
-                    <button data-machine-id="{{ row['machine_id'] }}" class="goLiveButton2 disabled" data-action="start">Go Live</button>
-                    <button data-machine-id="{{ row['machine_id'] }}" class="startStreamBtn disabled" data-action="start">Start</button>
+                    <button data-machine-id="{{ row['machine_id'] }}" class="goLiveButton2" data-action="start">Go Live</button>
+                    <button data-machine-id="{{ row['machine_id'] }}" class="startStreamBtn" data-action="start">Start</button>
                 </td>
             </tr>
             {% endfor %}

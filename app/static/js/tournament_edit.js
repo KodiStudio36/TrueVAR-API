@@ -8,7 +8,7 @@ Array.from(editableCells).forEach(cell => {
         if (column == "startTime") {
             newValue = prompt("Zadaj novy cas v tomto formate: (24hodinovy klasicky format) \n\nHH:MM\n\tESC for exit")
         } else if (column == "startDate") {
-            newValue = prompt("Zadaj novy datum v tomto formate: \n\nYYYY/MM/DD\n\tESC for exit")
+            newValue = prompt("Zadaj novy datum v tomto formate: \n\nYYYY-MM-DD\n\tESC for exit")
         }
         if (newValue == null) {
             newValue = prompt("Zadaj novu hodnotu.\n\tESC for exit")

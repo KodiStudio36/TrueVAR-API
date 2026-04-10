@@ -33,6 +33,9 @@ def get_youtube_service():
                 success_message="Auth complete. You can close this tab.",
             )
 
+            with open("token.pickle", "wb") as f:
+                pickle.dump(creds, f)
+
     # Return authenticated YouTube API client
     return build("youtube", "v3", credentials=creds)
 
@@ -172,3 +175,92 @@ def set_thumbnail(youtube, video_id, image_file_stream, filename=None):
     except Exception as e:
         print(f"❌ Error: Failed to set thumbnail for Video ID {video_id}. {e}")
         return False
+    
+def delete_broadcast(youtube, broadcast_id: str):
+    """
+    Deletes a scheduled/live broadcast by its broadcast ID.
+
+    Returns:
+    - True if deletion succeeded
+    - False if deletion failed
+    """
+    try:
+        request = youtube.liveBroadcasts().delete(
+            id=broadcast_id
+        )
+        request.execute()
+
+        print(f"✅ Success: Deleted broadcast ID {broadcast_id}.")
+        return True
+
+    except Exception as e:
+        print(f"❌ Error: Failed to delete broadcast ID {broadcast_id}. {e}")
+        return False
+    
+def check_stream_health(youtube, stream_id: str):
+    """
+    Checks whether YouTube is currently receiving ingest data
+    for the given liveStream resource.
+
+    Returns a dict like:
+    {
+        "found": True,
+        "is_receiving_data": True,
+        "stream_status": "active",
+        "health": "good"
+    }
+    """
+    try:
+        request = youtube.liveStreams().list(
+            part="status",
+            id=stream_id
+        )
+        response = request.execute()
+
+        items = response.get("items", [])
+        if not items:
+            return {
+                "found": False,
+                "is_receiving_data": False,
+                "stream_status": None,
+                "health": None,
+                "message": "Stream ID not found."
+            }
+
+        status_info = items[0].get("status", {})
+        stream_status = status_info.get("streamStatus")
+        health = status_info.get("healthStatus", {}).get("status", "noData")
+
+        return {
+            "found": True,
+            "is_receiving_data": stream_status == "active",
+            "stream_status": stream_status,
+            "health": health
+        }
+
+    except Exception as e:
+        return {
+            "found": False,
+            "is_receiving_data": False,
+            "stream_status": None,
+            "health": None,
+            "message": str(e)
+        }
+
+def start_youtube_stream(youtube, broadcast_id: str):
+    response = youtube.liveBroadcasts().transition(
+        part="id,status,contentDetails",
+        broadcastStatus="live",
+        id=broadcast_id
+    ).execute()
+
+    return response
+
+def stop_youtube_stream(youtube, broadcast_id: str):
+    response = youtube.liveBroadcasts().transition(
+        part="id,status,contentDetails",
+        broadcastStatus="complete",
+        id=broadcast_id
+    ).execute()
+
+    return response

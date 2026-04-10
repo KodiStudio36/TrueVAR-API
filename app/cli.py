@@ -21,7 +21,7 @@ def user(email: str, passwrd: str):
 @click.option("--owner", default=Owner.ME)
 @with_appcontext
 def device(expdate: str, owner: str, name: str):
-    dt = datetime.datetime.strptime(expdate, "%Y/%m/%d")
+    dt = datetime.datetime.strptime(expdate, "%Y-%m-%d")
 
     uspesnost = InsertNewDevice(dt, owner, name)
 

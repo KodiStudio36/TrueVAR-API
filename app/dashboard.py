@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 from flask import Blueprint, redirect, request, render_template, session
 import pytz
 from werkzeug.security import check_password_hash
-from database import GetPasswordAndIdByEmail, tournamentCreate, getAllRealTournaments, getAllDevicesData, editDevicesTableDb, getTournamentById, editTournamentDb, getVideoIdsByTournamentId, getAllDraftTournaments, deleteTournamentDb
-from youtube import create_broadcast, create_playlist, get_youtube_service, add_video_to_playlist, set_thumbnail
+from database import GetPasswordAndIdByEmail, tournamentCreate, getAllRealTournaments, getAllDevicesData, editDevicesTableDb, getTournamentById, editTournamentDb, getVideoIdsByTournamentId, getAllDraftTournaments, deleteTournamentDb, getAllStreamKeys, getScheduledTimesByStreamKey, insertNewCourtSchedule, deleteCourtScheduleTimesByTournamentId, getStreamIdByStreamKey
+from youtube import create_broadcast, create_playlist, get_youtube_service, add_video_to_playlist, set_thumbnail, delete_broadcast, bind_broadcast_to_stream
 from .decorators import login_required
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -56,15 +56,18 @@ def tournamentCreatePage():
             "location": request.form.get("location"),
             "courts": request.form.get("courts"),
             "scheduled": request.form.get("stream"),
+            "video_ids": None,
             "draft": False
         }
 
         # validacia vstupov
         for key, value in data.items():
-            if value == None:
+            if value == None and key != "video_ids":
                 return {"message": "Bad request - missing data"}, 400
         
         data["scheduled"] = data["scheduled"].lower() == "true"
+
+        tournament_id = tournamentCreate(data)
 
         if request.form.get("stream") == "true":
             date_str = data.get("startDate")
@@ -82,14 +85,50 @@ def tournamentCreatePage():
             yt = get_youtube_service()
             video_ids = []
 
+            court_set = False
             #creating playlist
             playlist_id = create_playlist(yt, data.get("name"), "Zapas livestream")
 
             for i in range(1, int(data.get("courts")) + 1):
+                court_set = False
                 title = f"{data.get("name")} court {i}"
                 video_id = create_broadcast(yt, title, f"Zapas livesteam z courtu {i}", start_time)
                 video_ids.append(video_id)
-            
+                # court num
+                # get all stream keys and iterate over them
+                stream_keys = getAllStreamKeys()
+                stream_keys = stream_keys
+                print("PRITING DATA FOR LOOP")
+                print(f"COURT: {i}")
+
+                for stream_key in stream_keys:
+                # iterate over rows in table courts, check if stream key is occupied on start_date of this tournament
+                    stream_key_schedule_times = getScheduledTimesByStreamKey(stream_key)
+                    # iterate over schedule times and check if it occupied
+                    if not stream_key_schedule_times and not court_set:
+                        insertNewCourtSchedule(i, tournament_id, stream_key, date_str)
+                        court_set = True
+                        continue
+                    if court_set:
+                        break
+
+                    for time_str in stream_key_schedule_times:
+                        string_time_str = time_str.strftime("%Y-%m-%d")
+                        if string_time_str == date_str:
+                            continue
+                        else:
+                            insertNewCourtSchedule(i, tournament_id, stream_key, date_str)
+                            court_set = True
+                    
+                    if court_set:
+                        break
+                if court_set:
+                    continue
+                            
+
+                    # if is scheduled -> skip
+                    # if not -> assign this court this stream key (insert a row in courts table)           
+
             for index, video_id in enumerate(video_ids):
                 # set thumbnails    
                 set_thumbnail(yt, video_id, images[index], images[index].filename)
@@ -111,9 +150,9 @@ def tournamentCreatePage():
         else:
             data["video_ids"] = None
 
-        status = tournamentCreate(data)
+        editTournamentDb(str(tournament_id), "video_ids", data["video_ids"])
 
-        if status:
+        if tournament_id:
             return {"message": "ok"}, 200
         return {"message": "Server error"}, 500
     
@@ -135,7 +174,7 @@ def editThumbnail():
     images = request.files.getlist("image")
     tournament_id = request.form.get("tournament_id")
     video_ids = getVideoIdsByTournamentId(tournament_id)
-    video_ids = video_ids.split(" ") # I did .split(" ") because the backend holds video ids in this format "[id] [id] [id]..."
+    video_ids = video_ids if len(video_ids) == 1 else video_ids[0].split(" ") # minus jedna lebo ak je court 1 -> broadcast id je 0 (o 1 menej)
     
     if not video_ids:
         return {"message": "database error - error fetching video_ids"}, 500
@@ -211,7 +250,21 @@ def public_tournament_create():
 @dashboard_bp.route("/tournament/delete/<int:id>", methods=["DELETE"])
 @login_required
 def deleteTournament(id):
+    yt = get_youtube_service()
+    data = getTournamentById(id).to_dict()
+    video_ids = data["video_ids"]
+
+    for broadcast_id in video_ids.split(" "):
+        status = delete_broadcast(yt, broadcast_id)
+        # on yt error
+        if not status:
+            return {"message": "Server error"}, 500
+    
+
     status = deleteTournamentDb(id)
+    # deletes any connections in the Courts table
+    deleteCourtScheduleTimesByTournamentId(id)
+
     if status:
         return {"message": "ok"}, 200
     return {"message": "Server error"}, 500
@@ -219,7 +272,7 @@ def deleteTournament(id):
 @dashboard_bp.route("/tournament/schedule", methods=["POST"])
 @login_required
 def schedule():
-    tournanent_id = request.form.get("id")
+    tournament_id = request.form.get("id")
     data = {
         "name": request.form.get("name"),
         "desc": request.form.get("desc"),
@@ -229,7 +282,7 @@ def schedule():
         "courts": request.form.get("courts"),
         "draft": False
     }
-    print(data)
+    date_str = data["startDate"]
     # validacia vstupov
     for key, value in data.items():
         if value == None:
@@ -252,9 +305,52 @@ def schedule():
     playlist_id = create_playlist(yt, data.get("name"), "Zapas livestream")
 
     for i in range(1, int(data.get("courts")) + 1):
+        court_set = False
         title = f"{data.get("name")} court {i}"
         video_id = create_broadcast(yt, title, f"Zapas livesteam z courtu {i}", start_time)
         video_ids.append(video_id)
+        # court num
+        # get all stream keys and iterate over them
+        stream_keys = getAllStreamKeys()
+        print("PRITING DATA FOR LOOP")
+        print(f"COURT: {i}")
+
+        for stream_key in stream_keys:
+            stream_id = getStreamIdByStreamKey(stream_key)
+        # iterate over rows in table courts, check if stream key is occupied on start_date of this tournament
+            stream_key_schedule_times = getScheduledTimesByStreamKey(stream_key)
+            # iterate over schedule times and check if it occupied
+            if not stream_key_schedule_times and not court_set:
+                try:
+                    insertNewCourtSchedule(i, tournament_id, stream_key, date_str)
+                    bind_broadcast_to_stream(yt, video_id, stream_id)
+                except RuntimeError:
+                    print("Tried to insert the same info or db inserting failed.")
+                    continue
+                court_set = True
+                continue
+            if court_set:
+                break
+            for time_str in stream_key_schedule_times:
+                string_time_str = time_str.strftime("%Y-%m-%d")
+                if string_time_str == date_str:
+                    continue
+                else:
+                    try:
+                        insertNewCourtSchedule(i, tournament_id, stream_key, date_str)
+                        bind_broadcast_to_stream(yt, video_id, stream_id)
+                    except RuntimeError:
+                        print("Tried to insert the same info or db inserting failed.")
+                        continue
+                    court_set = True
+            
+            if court_set:
+                break
+        if court_set:
+            continue
+                    
+            # if is scheduled -> skip
+            # if not -> assign this court this stream key (insert a row in courts table)    
     
     for index, video_id in enumerate(video_ids):
         # set thumbnails    
@@ -273,6 +369,6 @@ def schedule():
     data["video_ids"] = tempString
     data["scheduled"] = True
     for key, value in data.items():
-        editTournamentDb(tournanent_id, key, value)
+        editTournamentDb(tournament_id, key, value)
 
     return {"message": "ok"}, 200

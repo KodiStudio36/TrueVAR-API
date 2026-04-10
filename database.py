@@ -2,11 +2,10 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 from sqlalchemy import Boolean, Text, delete, select, Date, Time, Integer, DateTime, ForeignKey, update, event
 from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import SQLAlchemyError
+from enum import IntEnum
+import sqlalchemy as db
 import secrets
 import datetime
-from datetime import date
-import sqlalchemy as db
-from enum import IntEnum
 
 
 ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -47,6 +46,7 @@ class Tournaments(Base):
     video_ids: Mapped[str] = mapped_column(Text, nullable=True, default=None)
     draft: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     tournament_state: Mapped[str] = mapped_column(Text, nullable=False, default="init")
+    discipline: Mapped[str] = mapped_column(Text, nullable=True, default="Kyorugi")
 
     def to_dict(self):
         return {
@@ -59,7 +59,8 @@ class Tournaments(Base):
             "courts": self.courts,
             "scheduled": self.scheduled,
             "video_ids": self.video_ids,
-            "draft": self.draft
+            "draft": self.draft,
+            "discipline": self.discipline
         }
 
 class Devices(Base):
@@ -71,10 +72,11 @@ class Devices(Base):
     expiration_date: Mapped[DateTime] = mapped_column(DateTime)
     issued_at: Mapped[DateTime] = mapped_column(DateTime)
     owner: Mapped[int] = mapped_column(Integer)
-    tournament_id: Mapped[int] = mapped_column(Integer, ForeignKey("tournaments.id"), ForeignKey("fights.tournament_id"), nullable=True)
+    tournament_id: Mapped[int] = mapped_column(Integer, nullable=True)
     court: Mapped[int] = mapped_column(Integer, nullable=True, default=None)
     sid: Mapped[str] = mapped_column(Text, nullable=True, default=None)
-    current_fight: Mapped[int] = mapped_column(Integer, ForeignKey("fights.id"))
+    current_fight: Mapped[int] = mapped_column(Integer, nullable=True)
+    state: Mapped[int] = mapped_column(Text, nullable=False, default=0)
 
     def to_dict(self):
         return {
@@ -87,7 +89,8 @@ class Devices(Base):
             "tournament_id": self.tournament_id,
             "court": self.court,
             "sid": self.sid,
-            "current_fight": self.current_fight
+            "current_fight": self.current_fight,
+            "state": self.state
         }
 
 class Fights(Base):
@@ -128,6 +131,34 @@ class Fights(Base):
             "red_points": self.red_points,
             "blue_penalty": self.blue_penalty,
             "red_penalty": self.red_penalty
+        }
+    
+class Courts(Base):
+    __tablename__ = "courts"
+
+    court_num: Mapped[int] = mapped_column(Integer, primary_key=True)
+    tournament_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    stream_key: Mapped[str] = mapped_column(Text, nullable=False)
+    scheduled_date: Mapped[str] = mapped_column(Date, nullable=False)
+    
+    def to_dict(self):
+        return {
+            "court_num": self.stream_key,
+            "tournament_id": self.tournament_id,
+            "stream_key": self.stream_key,
+            "scheduled_date": self.scheduled_date,
+        }
+    
+class Stream_keys(Base):
+    __tablename__ = "stream_keys"
+
+    stream_id: Mapped[str] = mapped_column(Text, primary_key=True)
+    stream_key: Mapped[str] = mapped_column(Text, primary_key=True)
+
+    def to_dict(self):
+        return {
+            "stream_key": self.stream_key,
+            "stream_id": self.stream_id
         }
 
 
@@ -180,6 +211,8 @@ def GetPasswordAndIdByEmail(email: str):
         raise RuntimeError("Error getting the password hash from db")
     
 def tournamentCreate(data):
+    for key, val in data.items():
+        print(f"{key}: {val}")
     try:
         with SessionLocal() as session:
             tournament = Tournaments(
@@ -195,7 +228,7 @@ def tournamentCreate(data):
             )
             session.add(tournament)
             session.commit()
-            return True
+            return tournament.id
     except SQLAlchemyError:
         raise RuntimeError("Error while inserting a new tournament")
     except ValueError:
@@ -466,3 +499,138 @@ def getDeviceByLicenseKey(license_key: int):
         result = session.scalars(query).first()
         return result
     return False
+
+def getAllStreamKeys():
+    try:
+        with SessionLocal() as session:
+            query = select(Stream_keys.stream_key)
+            results = session.scalars(query).all()
+            return results
+    except SQLAlchemyError:
+        raise RuntimeError("Error fetching stream keys...")
+    
+def getScheduledTimesByStreamKey(stream_key: str):
+    try:
+        with SessionLocal() as session:
+            query = select(Courts.scheduled_date).where(Courts.stream_key == stream_key)
+            results = session.scalars(query).all()
+            return results
+    except SQLAlchemyError:
+        raise RuntimeError("Error fetching stream keys...")
+    
+def insertNewCourtSchedule(court_num: int, tournament_id: int, stream_key: str, scheduled_date: str):
+    try:
+        with SessionLocal() as session:
+            court = Courts(
+                court_num=court_num,
+                tournament_id=tournament_id,
+                stream_key=stream_key,
+                scheduled_date=datetime.datetime.strptime(scheduled_date, "%Y-%m-%d").date(),
+            )
+            session.add(court)
+            session.commit()
+            return True
+    except SQLAlchemyError:
+        raise RuntimeError("Error inserting a new schedule time for a court...")
+    
+def InsertStreamKey(stream_key: str, stream_id: str):
+    try:
+        with SessionLocal() as session:
+            row = Stream_keys(
+                stream_id=stream_id,
+                stream_key=stream_key
+            )
+            session.add(row)
+            session.commit()
+            return True
+    except SQLAlchemyError:
+        raise RuntimeError("Error inserting a new schedule time for a court...")
+    
+def deleteCourtScheduleTimesByTournamentId(tournament_id: int):
+    try:
+        with SessionLocal() as session:
+            query = delete(Courts).where(Courts.tournament_id == tournament_id)
+            session.execute(query)
+            session.commit()
+
+            return True
+    except SQLAlchemyError:
+        raise RuntimeError("Error deleting court schedule time...")
+    
+def updateDeviceState(machine_id: int, state: int):
+    try:
+        with SessionLocal() as session:
+            query = update(Devices).where(Devices.machine_id == machine_id).values(state=state)
+            session.execute(query)
+            session.commit()
+
+            return True
+    except SQLAlchemyError:
+        raise RuntimeError("Error deleting court schedule time...")
+    
+def getDevicesByState(state: int):
+    try:
+        with SessionLocal() as session:
+            query = select(Devices).where(Devices.state == state)
+            result = session.scalars(query).all()
+            return result
+    except SQLAlchemyError:
+        raise RuntimeError("Error deleting court schedule time...")
+    
+def getStreamKeyByTournamentIdAnCourt(tournament_id: int, court: int):
+    try:
+        with SessionLocal() as session:
+            query = select(Courts.stream_key).where(Courts.court_num == court and Courts.tournament_id == tournament_id)
+            result = session.scalars(query).first()
+            return result
+    except SQLAlchemyError:
+        raise RuntimeError("Error deleting court schedule time...")
+    
+def getStreamIdByStreamKey(stream_key: str):
+    try:
+        with SessionLocal() as session:
+            query = select(Stream_keys.stream_id).where(Stream_keys.stream_key == stream_key)
+            result = session.scalars(query).first()
+            return result
+    except SQLAlchemyError:
+        raise RuntimeError("Error deleting court schedule time...")
+
+def getDevice_CourtByMachineIdandTournamentId(machine_id: str, tournament_id: int):
+    try:
+        with SessionLocal() as session:
+            query = select(Devices.court).where(Devices.machine_id == machine_id and Devices.tournament_id == tournament_id)
+            result = session.scalars(query).all()
+            return result
+    except SQLAlchemyError:
+        raise RuntimeError("Error")
+    
+def getStreamKeyByTournamentIdAndCourt(court: int, tournament_id: int):
+    print(court, tournament_id)
+    court = court[0]
+    try:
+        with SessionLocal() as session:
+            query = select(Courts.stream_key).where(Courts.tournament_id == tournament_id,Courts.court_num == court)
+            result = session.scalars(query).all()
+            return result
+    except SQLAlchemyError:
+        raise RuntimeError("Error")
+    
+def getVideoIdsByTournamentId(tournament_id: int):
+    try:
+        with SessionLocal() as session:
+            query = select(Tournaments.video_ids).where(Tournaments.id == tournament_id)
+            result = session.scalars(query).all()
+            return result
+    except SQLAlchemyError:
+        raise RuntimeError("Error")
+    
+def clearDeviceCourtTournamentIdSidState(machine_id: str):
+    try:
+        with SessionLocal() as session:
+            query = update(Devices).where(Devices.machine_id == machine_id).values(court=None,tournament_id=None,sid=None,state=0)
+            session.execute(query)
+            session.commit()
+            return True
+    except SQLAlchemyError:
+        raise RuntimeError("Error")
+    

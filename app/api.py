@@ -5,17 +5,26 @@ from flask_socketio import disconnect, emit, join_room
 from app.extensions import app_socketio
 from app.socket_token import create_socket_token
 from .decorators import license_required, login_required
-from database import Devices, getSidByMachineId
+from database import Devices, getSidByMachineId, updateDeviceState, getDevicesByState, getDevice_CourtByMachineIdandTournamentId, getStreamKeyByTournamentIdAndCourt, getStreamIdByStreamKey, getVideoIdsByTournamentId, clearDeviceCourtTournamentIdSidState
 from cryptography.hazmat.primitives.asymmetric import ed25519
+from youtube import check_stream_health, get_youtube_service, start_youtube_stream, stop_youtube_stream
 
 api_bp = Blueprint("api", __name__)
 
 PRIVATE_KEY_HEX = "6420814ddfdc89a74847db945bc34564132ca842eca3dcde9c9e07c3c5c5ad13"
 private_key = ed25519.Ed25519PrivateKey.from_private_bytes(bytes.fromhex(PRIVATE_KEY_HEX))
 
-@api_bp.route("ivr/fetch", methods=["POST"])
+
+@api_bp.route("ivr/fetch/ping", methods=["HEAD", "GET"])
+def ping():
+    return "", 200
+
+@api_bp.route("ivr/fetch", methods=["POST", "HEAD"])
 @license_required
 def ivrFetch(device: Devices):
+    if request.method == "HEAD":
+        return "", 200
+    
     license_data = {
                     "license_key": device.license_key,
                     "machine_id": device.machine_id,
@@ -41,66 +50,176 @@ def ivrFetch(device: Devices):
         }
         }, 200
 
-@api_bp.route("dashboard/start_livestream_unicast", methods=["POST"])
+# PRVY go live (jedno ci broadcast or unicast, triggeruje to hocico)
+@api_bp.route("dashboard/livestream", methods=["POST"])
 @login_required
 def start_livestream_unicast():
     data = request.get_json()
 
-    machine_id = data["machine_id"]
+    machine_id = data.get("machine_id")
+    tournament_id = data.get("tournament_id")
 
-    sid = getSidByMachineId(machine_id)
+    # action can be start or stop
+    action = data["action"]
+
+    # send mode can be broadcast or unicast
+    send_mode = data["send_mode"]
+
+    if send_mode == "unicast": # machine id must exist
+
+        sid = getSidByMachineId(machine_id)
+        if action == "start":
+            updateDeviceState(machine_id, 1)
+        else:
+            clearDeviceCourtTournamentIdSidState(machine_id)
+            updateDeviceState(machine_id, 0)
+
+        app_socketio.emit(
+            f"{action}_livestream",
+            {},
+            to=sid
+        )
+        return {}, 200
+    
+    devices = ""
+    if action == "start":
+        state = 1
+        devices = getDevicesByState(0)
+    else:
+        state = 0
+        devices = getDevicesByState(1)
+
+    for device_raw in devices:
+        device = device_raw.to_dict()
+
+        updateDeviceState(device["machine_id"], state)
 
     app_socketio.emit(
-        "start_livestream",
+        f"{action}_livestream",
         {},
-        to=sid
+        to=tournament_id
     )
     return {}, 200
 
-@api_bp.route("dashboard/stop_livestream_unicast", methods=["POST"])
+# DRUHY golive 
+@api_bp.route("dashboard/stream", methods=["POST"])
 @login_required
-def stop_livestream_unicast():
+def api_stream():
     data = request.get_json()
 
-    machine_id = data["machine_id"]
+    machine_id = data.get("machine_id")
+    tournament_id = data.get("tournament_id")
 
-    sid = getSidByMachineId(machine_id)
+    # action can be start or stop
+    action = data["action"]
 
+    # send mode can be broadcast or unicast
+    send_mode = data["send_mode"]
+
+    if send_mode == "unicast":
+        # kontrola ci obs mam obsah
+        yt = get_youtube_service()
+        # get machine by machine_id and tournament_id -> to get court
+        court = getDevice_CourtByMachineIdandTournamentId(machine_id, tournament_id)
+        # get stream_key by tournament_id and court -> get stream keys
+        stream_key = getStreamKeyByTournamentIdAndCourt(court, tournament_id)
+        print("############")
+        print(stream_key, court)
+        # get stream_id by stream_key -> get stream_id
+        stream_id = getStreamIdByStreamKey(stream_key[0])
+
+        data_health = check_stream_health(yt, stream_id)
+        # ak hej tak - zapnem stream
+        status = data_health["is_receiving_data"]
+
+        video_ids = getVideoIdsByTournamentId(tournament_id)
+        video_id = video_ids[0] if len(video_ids) == 1 else video_ids[0].split(" ")[court - 1] # minus jedna lebo ak je court 1 -> broadcast id je 0 (o 1 menej)
+
+        sid = getSidByMachineId(machine_id)
+
+        if action == "start" and status:
+            start_youtube_stream(yt, video_id)
+            updateDeviceState(machine_id, 2)
+
+        elif status:
+            stop_youtube_stream(yt, video_id)
+            updateDeviceState(machine_id, 1)
+
+
+        app_socketio.emit(
+            f"{action}_stream",
+            {},
+            to=sid
+        )
+        return {}, 200
+    
+    devices = ""
+    if action == "start":
+        state = 2
+        devices = getDevicesByState(1)
+    else:
+        state = 1
+        devices = getDevicesByState(2)
+
+    for device_raw in devices:
+        device = device_raw.to_dict()
+
+        updateDeviceState(device["machine_id"], state)
     app_socketio.emit(
-        "stop_livestream",
+        f"{action}_stream",
         {},
-        to=sid
+        to=tournament_id
     )
     return {}, 200
 
-@api_bp.route("dashboard/start_tournament_unicast", methods=["POST"])
+# TRETI go live
+@api_bp.route("dashboard/tournament", methods=["POST"])
 @login_required
-def start_tournament_unicast():
+def api_tournament():
     data = request.get_json()
 
-    machine_id = data["machine_id"]
+    machine_id = data.get("machine_id")
+    tournament_id = data.get("tournament_id")
 
-    sid = getSidByMachineId(machine_id)
+    # action can be start or stop
+    action = data["action"]
 
+    # send mode can be broadcast or unicast
+    send_mode = data["send_mode"]
+
+    # set stream from obs to yt
+
+    if send_mode == "unicast":
+        if action == "start":
+            updateDeviceState(machine_id, 3)
+        else:
+            updateDeviceState(machine_id, 2)
+
+        sid = getSidByMachineId(machine_id)
+
+        app_socketio.emit(
+            f"{action}_tournament",
+            {},
+            to=sid
+        )
+        return {}, 200
+    
+    devices = ""
+    if action == "start":
+        state = 3
+        devices = getDevicesByState(2)
+    else:
+        state = 2
+        devices = getDevicesByState(3)
+
+    for device_raw in devices:
+        state = 3 if action == "start" else 2
+        device = device_raw.to_dict()
+
+        updateDeviceState(device["machine_id"], state)
     app_socketio.emit(
-        "start_tournament",
+        f"{action}_tournament",
         {},
-        to=sid
-    )
-    return {}, 200
-
-@api_bp.route("dashboard/stop_tournament_unicast", methods=["POST"])
-@login_required
-def stop_tournament_unicast():
-    data = request.get_json()
-
-    machine_id = data["machine_id"]
-
-    sid = getSidByMachineId(machine_id)
-
-    app_socketio.emit(
-        "start_tournament",
-        {},
-        to=sid
+        to=tournament_id
     )
     return {}, 200

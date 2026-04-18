@@ -3,7 +3,7 @@ from flask import request
 from flask_socketio import disconnect, emit, join_room
 from app.extensions import app_socketio
 from app.socket_token import verify_socket_token
-from database import InsertNewFight, UpdateFight, assignDeviceFightId, assignDeviceSid, getAllTournamentsNames, getTournamentByName, checkDeviceAssignedTournament, getTournamentById, assignDeviceToTournament, Tournaments, getTournamentIdByLicenseKey, getFightById, getCurrentFightByLicenseKey, getDeviceByLicenseKey, getFightByTournamentIdAndId, getStreamKeyByTournamentIdAnCourt, setMachineStatus
+from database import InsertNewFight, UpdateFight, assignDeviceFightId, assignDeviceSid, getAllTournamentsNames, getMachineIdBySid, getTournamentByName, checkDeviceAssignedTournament, getTournamentById, assignDeviceToTournament, Tournaments, getTournamentIdByLicenseKey, getFightById, getCurrentFightByLicenseKey, getDeviceByLicenseKey, getFightByTournamentIdAndId, getStreamKeyByTournamentIdAnCourt, setMachineStatus
 
 SOCKET_TOKEN_TTL_SECONDS = 300
 
@@ -172,12 +172,9 @@ def on_ivr_event(data):
 
 @app_socketio.on("disconnect")
 def disconnect(data):
-    device = getDeviceByLicenseKey(data.license_key).to_dict()
-    machine_id = device.machine_id
+    machine_id = getMachineIdBySid(request.sid)
 
     setMachineStatus(machine_id, "offline")
-
-
 
     app_socketio.emit(
         "device_status_changed",

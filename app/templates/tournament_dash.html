@@ -94,9 +94,13 @@
     </div>
     <br>
     <h2>Pro tip: Ak chces zmenit Tournament data, klikni na ziadane pole a zmen to.</h2>
+    <div class="messageContainer">
+        <textarea type="text" placeholder="Broadcast message...">{{ tournament.message }}</textarea>
+        <input type="submit" id="message_livestream_broadcast">
+    </div>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="/static/js/tournament_edit.js"></script>
     <script src="/static/js/tournament_dash_logic.js"></script>
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script>
 const socket = io("http://localhost:5000", {
     auth: {

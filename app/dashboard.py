@@ -55,102 +55,15 @@ def tournamentCreatePage():
             "startTime": request.form.get("startTime"),
             "location": request.form.get("location"),
             "courts": request.form.get("courts"),
-            "scheduled": request.form.get("stream"),
-            "video_ids": None,
             "draft": False
         }
 
         # validacia vstupov
         for key, value in data.items():
-            if value == None and key != "video_ids":
+            if value == None:
                 return {"message": "Bad request - missing data"}, 400
-        
-        data["scheduled"] = data["scheduled"].lower() == "true"
 
         tournament_id = tournamentCreate(data)
-
-        if request.form.get("stream") == "true":
-            date_str = data.get("startDate")
-            time_str = data.get("startTime")
-
-            start_time = datetime.strptime(
-                f"{date_str} {time_str}",
-                "%Y-%m-%d %H:%M"
-            )
-            # get images for thumbnails
-            images = request.files.getlist("image")
-
-            tz = pytz.timezone("Europe/Bratislava")
-            start_time = tz.localize(start_time)
-            yt = get_youtube_service()
-            video_ids = []
-
-            court_set = False
-            #creating playlist
-            playlist_id = create_playlist(yt, data.get("name"), "Zapas livestream")
-
-            for i in range(1, int(data.get("courts")) + 1):
-                court_set = False
-                title = f"{data.get("name")} court {i}"
-                video_id = create_broadcast(yt, title, f"Zapas livesteam z courtu {i}", start_time)
-                video_ids.append(video_id)
-                # court num
-                # get all stream keys and iterate over them
-                stream_keys = getAllStreamKeys()
-                stream_keys = stream_keys
-                print("PRITING DATA FOR LOOP")
-                print(f"COURT: {i}")
-
-                for stream_key in stream_keys:
-                # iterate over rows in table courts, check if stream key is occupied on start_date of this tournament
-                    stream_key_schedule_times = getScheduledTimesByStreamKey(stream_key)
-                    # iterate over schedule times and check if it occupied
-                    if not stream_key_schedule_times and not court_set:
-                        insertNewCourtSchedule(i, tournament_id, stream_key, date_str)
-                        court_set = True
-                        continue
-                    if court_set:
-                        break
-
-                    for time_str in stream_key_schedule_times:
-                        string_time_str = time_str.strftime("%Y-%m-%d")
-                        if string_time_str == date_str:
-                            continue
-                        else:
-                            insertNewCourtSchedule(i, tournament_id, stream_key, date_str)
-                            court_set = True
-                    
-                    if court_set:
-                        break
-                if court_set:
-                    continue
-                            
-
-                    # if is scheduled -> skip
-                    # if not -> assign this court this stream key (insert a row in courts table)           
-
-            for index, video_id in enumerate(video_ids):
-                # set thumbnails    
-                set_thumbnail(yt, video_id, images[index], images[index].filename)
-                status = add_video_to_playlist(yt, playlist_id, video_id)
-                assert status
-
-
-        # if this was scheduled right now, add the video id's to the db, else, put NULL there
-        if data["scheduled"]:
-            tempString = ""
-            first = False
-            for video_id in video_ids:
-                if not first:
-                    tempString = video_id
-                    first = True
-                    continue
-                tempString += f" {video_id}"
-            data["video_ids"] = tempString
-        else:
-            data["video_ids"] = None
-
-        editTournamentDb(str(tournament_id), "video_ids", data["video_ids"])
 
         if tournament_id:
             return {"message": "ok"}, 200
@@ -217,7 +130,6 @@ def tournament_dash(id):
         if tournament_data == None:
             tournament_data = 0
         devices = getDevicesByTournamentId(id)
-        print(devices[0].to_dict())
         return render_template("tournament_dash.html", devicesData=devices, tournament=tournament_data)
 
 @dashboard_bp.route("/public/tournament/create", methods=["POST", "GET"])
@@ -231,7 +143,6 @@ def public_tournament_create():
             "startDate": request.form.get("startDate"),
             "startTime": request.form.get("startTime"),
             "location": request.form.get("location"),
-            "courts": request.form.get("courts"),
             "draft": True
         }
 

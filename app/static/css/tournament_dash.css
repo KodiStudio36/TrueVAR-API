@@ -106,10 +106,58 @@ h1 {
 .actionButtons button.goLiveButton2.disabled,
 button#schedule.disabled,
 #startButton.disabled,
-#golive2.disabled {
+#golive2.disabled,
+#golive1.disabled {
     background-color: gray !important;
     cursor: not-allowed !important;
 }
 button.live {
     background-color: red !important;
+}
+
+.messageContainer {
+    width: 95%;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    z-index: 1000;
+}
+
+.messageContainer textarea {
+    width: 260px;
+    height: 130;
+    padding: 10px 12px;
+    border: 1px solid #cfd8e3;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    color: #1f1f1f;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.messageContainer textarea:focus {
+    outline: none;
+    border-color: #2f7cf6;
+    box-shadow: 0 0 0 3px rgba(47, 124, 246, 0.15);
+}
+
+.messageContainer input[type="submit"] {
+    padding: 10px 16px;
+    background: #2f7cf6;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.messageContainer input[type="submit"]:hover {
+    background: #1f6ae0;
+}
+
+.messageContainer input[type="submit"]:active {
+    background: #1557c2;
 }

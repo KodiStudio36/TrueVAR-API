@@ -1,3 +1,4 @@
+from flask import json
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 from sqlalchemy import Boolean, Text, delete, select, Date, Time, Integer, DateTime, ForeignKey, update, event
 from werkzeug.security import generate_password_hash
@@ -47,6 +48,7 @@ class Tournaments(Base):
     draft: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     tournament_state: Mapped[str] = mapped_column(Text, nullable=False, default="init")
     discipline: Mapped[str] = mapped_column(Text, nullable=True, default="Kyorugi")
+    message: Mapped[str] = mapped_column(Text, nullable=True)
 
     def to_dict(self):
         return {
@@ -60,7 +62,8 @@ class Tournaments(Base):
             "scheduled": self.scheduled,
             "video_ids": self.video_ids,
             "draft": self.draft,
-            "discipline": self.discipline
+            "discipline": self.discipline,
+            "message": self.message
         }
 
 class Devices(Base):
@@ -100,39 +103,19 @@ class Fights(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     tournament_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    title: Mapped[str] = mapped_column(Text)
-    category: Mapped[str] = mapped_column(Text)
-    hit_level: Mapped[int] = mapped_column(Integer)
-    state: Mapped[str] = mapped_column(Text)
-    clock: Mapped[str] = mapped_column(Text)
-    round: Mapped[int] = mapped_column(Integer)
     blue_name: Mapped[str] = mapped_column(Text)
-    blue_flag: Mapped[str] = mapped_column(Text)
     red_name: Mapped[str] = mapped_column(Text)
-    red_flag: Mapped[str] = mapped_column(Text)
-    blue_points: Mapped[str] = mapped_column(Text)
-    red_points: Mapped[str] = mapped_column(Text)
-    blue_penalty: Mapped[str] = mapped_column(Text)
-    red_penalty: Mapped[str] = mapped_column(Text)
+    win: Mapped[str] = mapped_column(Text, nullable=True)
+    data: Mapped[str] = mapped_column(Text)
 
     def to_dict(self):
         return {
             "id": self.id,
             "tournament_id": self.tournament_id,
-            "title": self.title,
-            "category": self.category,
-            "hit_level": self.hit_level,
-            "state": self.state,
-            "clock": self.clock,
-            "round": self.round,
             "blue_name": self.blue_name,
-            "blue_flag": self.blue_flag,
             "red_name": self.red_name,
-            "red_flag": self.red_flag,
-            "blue_points": self.blue_points,
-            "red_points": self.red_points,
-            "blue_penalty": self.blue_penalty,
-            "red_penalty": self.red_penalty
+            "win": self.win,
+            "data": self.data,
         }
     
 class Courts(Base):
@@ -224,9 +207,6 @@ def tournamentCreate(data):
                 startTime=datetime.datetime.strptime(data["startTime"], "%H:%M").time(),
                 location=data["location"],
                 courts=int(data["courts"]),
-                scheduled=data["scheduled"], 
-                video_ids=data["video_ids"],
-                draft=data["draft"]
             )
             session.add(tournament)
             session.commit()
@@ -410,46 +390,25 @@ def InsertNewFight(data):
             fight = Fights(
                 id=data["id"],
                 tournament_id=data["tournament_id"],
-                title=data["title"],
-                category=data["category"],
-                hit_level=data["hit_level"],
-                state=data["state"],
-                clock=data["clock"],
-                round=data["round"],
                 blue_name=data["blue_name"],
-                blue_flag=data["blue_flag"],
                 red_name=data["red_name"],
-                red_flag=data["red_flag"],
-                blue_points=" ".join(map(str, data["blue_points"])),
-                red_points=" ".join(map(str, data["red_points"])),
-                blue_penalty=" ".join(map(str, data["blue_penalty"])),
-                red_penalty=" ".join(map(str, data["red_penalty"]))
+                win=data["win"],
+                data=json.dumps(data)
             )
             session.add(fight)
             session.commit()
             return True
     except SQLAlchemyError:
-        raise RuntimeError("Inserting new user has failed")
+        raise RuntimeError("Inserting new fight fail")
     
 def UpdateFight(id: int, data):
     try:
         with SessionLocal() as session:
             query = update(Fights).where(Fights.id == id).values(
-                tournament_id=data["tournament_id"],
-                title=data["title"],
-                category=data["category"],
-                hit_level=data["hit_level"],
-                state=data["state"],
-                clock=data["clock"],
-                round=data["round"],
                 blue_name=data["blue_name"],
-                blue_flag=data["blue_flag"],
                 red_name=data["red_name"],
-                red_flag=data["red_flag"],
-                blue_points=" ".join(map(str, data["blue_points"])),
-                red_points=" ".join(map(str, data["red_points"])),
-                blue_penalty=" ".join(map(str, data["blue_penalty"])),
-                red_penalty=" ".join(map(str, data["red_penalty"])),
+                win=None if data["win"] == "" else data["blue_name"] if data["win"] == "blue" else data["red_name"],
+                data=json.dumps(data)
             )
             session.execute(query)
             session.commit()
@@ -461,10 +420,10 @@ def getFightByTournamentIdAndId(tournament_id: int, fight_id: int):
     with SessionLocal() as session:
         query = select(Fights).where(Fights.tournament_id, tournament_id and Fights.id == fight_id)
         result = session.scalars(query).first()
-
-        if result.rowcount == 0:
-            return True
-        return False
+        print(result)
+        if not result:
+            return False
+        return True
     return False
 def getTournamentIdByLicenseKey(license_key: str):
     with SessionLocal() as session:
@@ -659,6 +618,15 @@ def getMachineIdBySid(sid: str):
     try:
         with SessionLocal() as session:
             query = select(Devices.machine_id).where(Devices.sid == sid)
+            result = session.scalars(query).first()
+            return result
+    except SQLAlchemyError:
+        raise RuntimeError("Error getting machine_id by sid")
+    
+def returnFightDataByNameAndTournamentId(name: str, tournament_id: int):
+    try:
+        with SessionLocal() as session:
+            query = select(Fights.data).where(Fights.win == name and Fights.tournament_id == tournament_id)
             result = session.scalars(query).first()
             return result
     except SQLAlchemyError:

@@ -357,6 +357,19 @@ document.addEventListener("DOMContentLoaded",async () => {
 
 const setupButtonBroadcast = () => {
 
+    if (Array.from(golive1_deviceButtons).length <= 0) {
+        golive1.classList = "disabled"
+        golive1.setAttribute("data-action", "start")
+        golive1.innerHTML = "Go Live"
+        golive2.className = "disabled"
+        golive2.setAttribute("data-action", "start")
+        golive2.innerHTML = "Go Live"
+        startButton.className = "disabled"
+        startButton.setAttribute("data-action", "start")
+        startButton.innerHTML = "Start Stream"
+        return
+    }
+
     let goliveButtons_1_Live = true
     let goliveButtons_2_live = true
     let startStreambuttons_live = true
@@ -420,3 +433,20 @@ const sleep = async (ms) => {
         }, ms)
     })
 };
+
+const messageTextArea = document.querySelector("textarea");
+
+document.querySelector("#message_livestream_broadcast").addEventListener("click",async () => {
+    if (messageTextArea.value === "") return;
+
+    console.log("message:", messageTextArea.value)
+    await fetch("/api/message/broadcast", {
+        method: "POST",
+        headers: { "Content-type": "application/json" },
+        body: JSON.stringify({
+            message: messageTextArea.value,
+            tournament_id: tournament_id
+        })
+    });
+    alert("Sprava odoslana")
+});

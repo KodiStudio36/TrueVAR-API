@@ -36,7 +36,7 @@
             <tr class="deviceRow" data-machine-id="{{ row['machine_id'] }}" data-device-state="{{ row['state'] }}">
                 <td data-col="name" data-id="{{ row['license_key'] }}">{{row["name"]}}</td>
                 <td data-col="court" data-id="{{ row['license_key'] }}">{{row["court"]}}</td>
-                <td>STATUS</td>
+                <td data-col="status">{{ row["status"] }}</td>
                 <td class="actionButtons">
                     <button data-machine-id="{{ row['machine_id'] }}" class="goLiveButton1" data-action="start">Go Live</button>
                     <button data-machine-id="{{ row['machine_id'] }}" class="goLiveButton2" data-action="start">Go Live</button>
@@ -96,6 +96,32 @@
     <h2>Pro tip: Ak chces zmenit Tournament data, klikni na ziadane pole a zmen to.</h2>
     <script src="/static/js/tournament_edit.js"></script>
     <script src="/static/js/tournament_dash_logic.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+const socket = io("http://localhost:5000", {
+    auth: {
+        token: "frontend"
+    }
+});
+
+socket.on("connect", () => {
+    console.log("Connected to server:", socket.id);
+});
+
+socket.on("device_status_changed", (payload) => {
+    console.log("Full payload:", payload);
+
+    const machineId = payload.data.machine_id;
+    const status = payload.data.status;
+
+    const row = document.querySelector(`tr[data-machine-id="${machineId}"]`)
+    const statusCell = row.querySelector('td[data-col="status"]')
+
+    statusCell.innerHTML = status
+    console.log("Machine:", machineId);
+    console.log("Status:", status);
+});
+    </script>
     {% endif %}
 </body>
 </html>

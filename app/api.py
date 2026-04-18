@@ -5,7 +5,7 @@ from flask_socketio import disconnect, emit, join_room
 from app.extensions import app_socketio
 from app.socket_token import create_socket_token
 from .decorators import license_required, login_required
-from database import Devices, getSidByMachineId, updateDeviceState, getDevicesByState, getDevice_CourtByMachineIdandTournamentId, getStreamKeyByTournamentIdAndCourt, getStreamIdByStreamKey, getVideoIdsByTournamentId, clearDeviceCourtTournamentIdSidState
+from database import Devices, getSidByMachineId, returnFightDataByNameAndTournamentId, updateDeviceState, getDevicesByState, getDevice_CourtByMachineIdandTournamentId, getStreamKeyByTournamentIdAndCourt, getStreamIdByStreamKey, getVideoIdsByTournamentId, clearDeviceCourtTournamentIdSidState
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from youtube import check_stream_health, get_youtube_service, start_youtube_stream, stop_youtube_stream
 
@@ -132,9 +132,10 @@ def api_stream():
         # ak hej tak - zapnem stream
         status = data_health["is_receiving_data"]
 
-        video_ids = getVideoIdsByTournamentId(tournament_id)
-        video_id = video_ids[0] if len(video_ids) == 1 else video_ids[0].split(" ")[court - 1] # minus jedna lebo ak je court 1 -> broadcast id je 0 (o 1 menej)
-
+        video_ids = getVideoIdsByTournamentId(tournament_id)[0]
+        court = court[0]
+        video_id = video_ids[0] if len(video_ids.split(" ")) == 1 else video_ids.split(" ")[court - 1] # minus jedna lebo ak je court 1 -> broadcast id je 0 (o 1 menej)
+        print(video_id)
         sid = getSidByMachineId(machine_id)
 
         if action == "start" and status:
@@ -223,3 +224,30 @@ def api_tournament():
         to=tournament_id
     )
     return {}, 200
+
+
+# TRETI go live
+@api_bp.route("api/ivr/fights-won", methods=["GET"])
+@login_required
+def fightsWon():
+    name = request.form.get("name")
+    tournament_id = request.form.get("tournament_id")
+
+    fightData = returnFightDataByNameAndTournamentId(name, int(tournament_id))
+
+    return {"data": fightData}, 200
+
+@api_bp.route("message/broadcast", methods=["POST"])
+@login_required
+def message_broadcast():
+    data = request.get_json()
+    message = data.get("message")
+    tournament_id = data.get("tournament_id")
+
+    app_socketio.emit(
+        "stream_message_broadcast",
+        {"message": message},
+        to=str(tournament_id)
+    )
+
+    return {"message": "ok"}, 200

@@ -1,5 +1,5 @@
 # app/sockets.py
-from flask import request
+from flask import json, request
 from flask_socketio import disconnect, emit, join_room
 from app.extensions import app_socketio
 from app.socket_token import verify_socket_token
@@ -49,17 +49,6 @@ def on_connect(auth=None):
         device = getDeviceByLicenseKey(license_key)
         data["stream_key"] = getStreamKeyByTournamentIdAnCourt(tournament_id, device.court)
 
-        setMachineStatus(machine_id, "online")
-        app_socketio.emit(
-            "device_status_changed",
-            {
-                "data": {
-                    "machine_id": machine_id,
-                    "status": "online"
-                }
-            },
-            to="frontend_clients"
-        )
 
         emit("tournament_data", {"message": "ok", "data": data})
         return
@@ -111,21 +100,38 @@ def tournament_data(req):
 
 @app_socketio.on("confirm_connection")
 def confirmConnection(data):
-    print("Confirm Selection")
+    print("CONFIRM CONNECTION TRIGGERED")
 
     sid = request.sid
     license_key = data.get("license_key")
     print(sid, license_key)
 
     tournament_id = assignDeviceSid(sid, license_key)
+    machine_id = getMachineIdBySid(sid)
 
-    join_room(tournament_id)
-    print(tournament_id)
+    if not machine_id:
+        raise RuntimeError("No machine id")
+
+    setMachineStatus(machine_id, "online")
+
+    app_socketio.emit(
+        "device_status_changed",
+        {
+            "data": {
+                "machine_id": machine_id,
+                "status": "online"
+            }
+        },
+        to="frontend_clients"
+    )
+    join_room(str(tournament_id))
+    print(f"JOINED TO ROOM {tournament_id}")
 
     return
 
-@app_socketio.on("new_fight")
-def confirmConnection(data):
+@app_socketio.on("update_fight_data")
+def update_fight_data(data):
+    print("UPDATING FIGHT DATA")
     row = data["data"]
     license_key = data.get("license_key")
 
@@ -133,10 +139,10 @@ def confirmConnection(data):
 
     row["tournament_id"] = tournament_id
     # ak nahodou existuje fight kde su poslane data rovnake pri tournament_id a fight_id -> update fight
-    neexistuje_fight = getFightByTournamentIdAndId(int(tournament_id), int(data["id"]))
-
-    if not neexistuje_fight:
-        UpdateFight(int(data["id"]), data)
+    existuje_fight = getFightByTournamentIdAndId(int(tournament_id), int(row["id"]))
+    print(existuje_fight)
+    if existuje_fight:
+        UpdateFight(int(row["id"]), row)
     else:
         status = InsertNewFight(row)
         if not status:
@@ -146,14 +152,17 @@ def confirmConnection(data):
     return
 
 @app_socketio.on("start_fight")
-def confirmConnection(data):
+def start_fight(data):
+    print("FIGHT STARTED")
     license_key = data.get("license_key")
 
     device_data = getDeviceByLicenseKey(license_key).to_dict()
     fight_data = getFightById(str(device_data["current_fight"]))
+    fight_data = fight_data.to_dict()
+    fight_data = fight_data.get("data")
+    tournament_id = device_data["tournament_id"]
 
-    print(device_data, fight_data)
-    emit("other_fight_started", {"data": fight_data.to_dict(), "court": device_data["court"]}, room=device_data["tournament_id"])
+    emit("other_fight_started", {"data": fight_data}, to=str(tournament_id))
 
 @app_socketio.on("ping")
 def on_ping(data):

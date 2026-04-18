@@ -17,21 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
         for (let i = 0; i < fields.length; i++) {
             formData.append(fields[i], document.querySelectorAll(".getmethoseDATA")[i].value)
         }
-        formData.append("stream", streamCheckbox.checked)
-
-        if (streamCheckbox.checked) {
-            let courts = parseInt(courtsInput.value)
-            if (isNaN(courts)) return
-            
-            for (let i = 0; i < courts; i++) {
-                let file = document.querySelector(`#image${i + 1}`).files[0]
-                if (file == undefined) {
-                    alert("Neuploadol si vsetky images")
-                    return
-                }
-                formData.append("image", file)
-            }
-        }
         
         // logger
         // for (const [key, value] of formData.entries()) {

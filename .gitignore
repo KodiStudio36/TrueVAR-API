@@ -1,4 +1,7 @@
 .env
 __pycache__
 .venv
-test.py
+app.db
+token.pickle
+*.log
+test.*

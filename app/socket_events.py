@@ -179,5 +179,13 @@ def disconnect(data):
 
 
 
-    # app_socketio.emit("", data, room=f"lic:{license_key}") enmit to frontend
-
+    app_socketio.emit(
+        "device_status_changed",
+        {
+            "data": {
+                "machine_id": machine_id,
+                "status": "offline"
+            }
+        },
+        to="frontend_clients"
+    )

@@ -217,6 +217,7 @@ def tournament_dash(id):
         if tournament_data == None:
             tournament_data = 0
         devices = getDevicesByTournamentId(id)
+        print(devices[0].to_dict())
         return render_template("tournament_dash.html", devicesData=devices, tournament=tournament_data)
 
 @dashboard_bp.route("/public/tournament/create", methods=["POST", "GET"])

@@ -77,6 +77,7 @@ class Devices(Base):
     sid: Mapped[str] = mapped_column(Text, nullable=True, default=None)
     current_fight: Mapped[int] = mapped_column(Integer, nullable=True)
     state: Mapped[int] = mapped_column(Text, nullable=False, default=0)
+    status: Mapped[str] = mapped_column(Text, nullable=False, default="offline")
 
     def to_dict(self):
         return {
@@ -90,7 +91,8 @@ class Devices(Base):
             "court": self.court,
             "sid": self.sid,
             "current_fight": self.current_fight,
-            "state": self.state
+            "state": self.state,
+            "status": self.status,
         }
 
 class Fights(Base):
@@ -642,3 +644,13 @@ def getDevicesByTournamentId(tournament_id: int):
             return result
     except SQLAlchemyError:
         raise RuntimeError("Error")
+    
+def setMachineStatus(machine_id: str, status: str):
+    try:
+        with SessionLocal() as session:
+            query = update(Devices).where(Devices.machine_id == machine_id).values(status=status)
+            session.execute(query)
+            session.commit()
+            return True
+    except SQLAlchemyError:
+        raise RuntimeError("Error updating device state")

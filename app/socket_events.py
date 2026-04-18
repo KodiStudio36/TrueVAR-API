@@ -171,7 +171,7 @@ def on_ivr_event(data):
     app_socketio.emit("ivr:update", data, room=f"lic:{license_key}")
 
 @app_socketio.on("disconnect")
-def disconnect(data):
+def disconnect():
     machine_id = getMachineIdBySid(request.sid)
 
     setMachineStatus(machine_id, "offline")

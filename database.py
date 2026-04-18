@@ -654,3 +654,12 @@ def setMachineStatus(machine_id: str, status: str):
             return True
     except SQLAlchemyError:
         raise RuntimeError("Error updating device state")
+    
+def getMachineIdBySid(sid: str):
+    try:
+        with SessionLocal() as session:
+            query = select(Devices.machine_id).where(Devices.sid == sid)
+            result = session.scalars(query).first()
+            return result
+    except SQLAlchemyError:
+        raise RuntimeError("Error getting machine_id by sid")

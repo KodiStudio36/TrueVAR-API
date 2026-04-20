@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (WORKING) return
         WORKING = true
         const formData = new FormData()
-        const fields = ["name", "desc", "startDate", "startTime", "location", "courts"]
+        const fields = ["name", "desc", "startDate", "startTime", "location", "courts", "discipline"]
         
         for (let i = 0; i < fields.length; i++) {
             formData.append(fields[i], document.querySelectorAll(".getmethoseDATA")[i].value)
@@ -20,13 +20,13 @@ document.addEventListener("DOMContentLoaded", () => {
         
         // logger
         // for (const [key, value] of formData.entries()) {
-            //     console.log(key, value);
-            // }
-            const response = await fetch("/dashboard/tournament/create", {
+        //     console.log(key, value);
+        // }
+        const response = await fetch("/dashboard/tournament/create", {
             method: "POST",
             body: formData
         });
-        console.log(`Response: ${response.status}`)
+        
         data = await response.json()
         WORKING = false
         switch (response.status) {

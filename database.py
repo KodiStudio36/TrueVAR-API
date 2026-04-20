@@ -207,6 +207,7 @@ def tournamentCreate(data):
                 startTime=datetime.datetime.strptime(data["startTime"], "%H:%M").time(),
                 location=data["location"],
                 courts=int(data["courts"]),
+                discipline=data["discipline"],
             )
             session.add(tournament)
             session.commit()

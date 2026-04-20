@@ -55,6 +55,7 @@ def tournamentCreatePage():
             "startTime": request.form.get("startTime"),
             "location": request.form.get("location"),
             "courts": request.form.get("courts"),
+            "discipline": request.form.get("discipline"),
             "draft": False
         }
 

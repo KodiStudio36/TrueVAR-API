@@ -7,6 +7,15 @@ from database import InsertNewFight, UpdateFight, assignDeviceFightId, assignDev
 
 SOCKET_TOKEN_TTL_SECONDS = 300
 
+def emit_tournament_data(license_key, tournament_id):
+    data = getTournamentById(tournament_id).to_dict()
+    
+    device = getDeviceByLicenseKey(license_key)
+    data["stream_key"] = getStreamKeyByTournamentIdAnCourt(tournament_id, device.court)
+    data["court_num"] = device.court
+
+    emit("tournament_data", {"message": "ok", "data": data})
+
 @app_socketio.on("connect")
 def on_connect(auth=None):
     """
@@ -44,13 +53,7 @@ def on_connect(auth=None):
     print(tournament_id)
     
     if tournament_id:
-        data = getTournamentById(tournament_id).to_dict()
-        print(data)
-        device = getDeviceByLicenseKey(license_key)
-        data["stream_key"] = getStreamKeyByTournamentIdAnCourt(tournament_id, device.court)
-
-
-        emit("tournament_data", {"message": "ok", "data": data})
+        emit_tournament_data(license_key, tournament_id)
         return
 
     # You can put them into the socket session (per-connection context)
@@ -93,9 +96,7 @@ def tournament_data(req):
     
     assignDeviceToTournament(license_key, tournament.id, court)
 
-    data = tournament.to_dict()
-    data["stream_key"] = getStreamKeyByTournamentIdAnCourt(tournament.id, court)
-    emit("tournament_data", {"message": "ok", "data": data})
+    emit_tournament_data(license_key, tournament.id)
     return
 
 @app_socketio.on("confirm_connection")

@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 from flask import Blueprint, redirect, request, render_template, session
 import pytz
 from werkzeug.security import check_password_hash
-from database import GetPasswordAndIdByEmail, getDevicesByTournamentId, tournamentCreate, getAllRealTournaments, getAllDevicesData, editDevicesTableDb, getTournamentById, editTournamentDb, getVideoIdsByTournamentId, getAllDraftTournaments, deleteTournamentDb, getAllStreamKeys, getScheduledTimesByStreamKey, insertNewCourtSchedule, deleteCourtScheduleTimesByTournamentId, getStreamIdByStreamKey
-from youtube import create_broadcast, create_playlist, get_youtube_service, add_video_to_playlist, set_thumbnail, delete_broadcast, bind_broadcast_to_stream
+from database import GetPasswordAndIdByEmail, getAllDisciplines, getDevicesByTournamentId, tournamentCreate, getAllRealTournaments, getAllDevicesData, editDevicesTableDb, getTournamentById, editTournamentDb, getVideoIdsByTournamentId, getAllDraftTournaments, deleteTournamentDb, getAllStreamKeys, getScheduledTimesByStreamKey, insertNewCourtSchedule, deleteCourtScheduleTimesByTournamentId, getStreamIdByStreamKey
+from youtube import build_broadcast_description, build_playlist_description, create_broadcast, create_playlist, get_youtube_service, add_video_to_playlist, set_thumbnail, delete_broadcast, bind_broadcast_to_stream
 from .decorators import login_required
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -46,7 +46,8 @@ def dashboard():
 @login_required
 def tournamentCreatePage():
     if request.method == "GET":
-        return render_template("tournament_create.html")
+        disciplines = getAllDisciplines()
+        return render_template("tournament_create.html", disciplines=disciplines)
     else:
         data = {
             "name": request.form.get("name"),
@@ -56,7 +57,7 @@ def tournamentCreatePage():
             "location": request.form.get("location"),
             "courts": request.form.get("courts"),
             "discipline": request.form.get("discipline"),
-            "draft": False
+            "draft": 0
         }
 
         # validacia vstupov
@@ -136,7 +137,8 @@ def tournament_dash(id):
 @dashboard_bp.route("/public/tournament/create", methods=["POST", "GET"])
 def public_tournament_create():
     if request.method == "GET":
-        return render_template("public_tournament_create.html")
+        disciplines = getAllDisciplines()
+        return render_template("public_tournament_create.html", disciplines=disciplines)
     elif request.method == "POST":
         data = {
             "name": request.form.get("name"),
@@ -144,7 +146,9 @@ def public_tournament_create():
             "startDate": request.form.get("startDate"),
             "startTime": request.form.get("startTime"),
             "location": request.form.get("location"),
-            "draft": True
+            "courts": request.form.get("courts"),
+            "discipline": request.form.get("discipline"),
+            "draft": 1
         }
 
         # validacia vstupov
@@ -163,20 +167,22 @@ def public_tournament_create():
 @dashboard_bp.route("/tournament/delete/<int:id>", methods=["DELETE"])
 @login_required
 def deleteTournament(id):
-    yt = get_youtube_service()
     data = getTournamentById(id).to_dict()
-    video_ids = data["video_ids"]
 
-    for broadcast_id in video_ids.split(" "):
-        status = delete_broadcast(yt, broadcast_id)
-        # on yt error
-        if not status:
-            return {"message": "Server error"}, 500
+    if data["scheduled"]:
+        yt = get_youtube_service()
+        video_ids = data["video_ids"]
+
+        for broadcast_id in video_ids.split(" "):
+            status = delete_broadcast(yt, broadcast_id)
+            # on yt error
+            if not status:
+                return {"message": "Server error"}, 500
+        deleteCourtScheduleTimesByTournamentId(id)
     
 
     status = deleteTournamentDb(id)
     # deletes any connections in the Courts table
-    deleteCourtScheduleTimesByTournamentId(id)
 
     if status:
         return {"message": "ok"}, 200
@@ -193,7 +199,7 @@ def schedule():
         "startTime": request.form.get("startTime"),
         "location": request.form.get("location"),
         "courts": request.form.get("courts"),
-        "draft": False
+        "draft": 0
     }
     date_str = data["startDate"]
     # validacia vstupov
@@ -214,13 +220,16 @@ def schedule():
     yt = get_youtube_service()
     video_ids = []
 
+    playlist_desc = build_playlist_description(data)
     # creating playlist
-    playlist_id = create_playlist(yt, data.get("name"), "Zapas livestream")
+    playlist_id = create_playlist(yt, data.get("name"), playlist_desc, privacy="public")
 
     for i in range(1, int(data.get("courts")) + 1):
         court_set = False
-        title = f"{data.get("name")} court {i}"
-        video_id = create_broadcast(yt, title, f"Zapas livesteam z courtu {i}", start_time)
+        title = f"{data.get("name")} Court {i}"
+        livestream_desc = build_broadcast_description(data, i)
+
+        video_id = create_broadcast(yt, title, livestream_desc, start_time, privacy="public")
         video_ids.append(video_id)
         # court num
         # get all stream keys and iterate over them

@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (WORKING) return
         WORKING = true
         const formData = new FormData()
-        const fields = ["name", "desc", "startDate", "startTime", "location", "courts"]
+        const fields = ["name", "desc", "startDate", "startTime", "location", "courts", "discipline"]
         
         for (let i = 0; i < fields.length; i++) {
             formData.append(fields[i], document.querySelectorAll(".getmethoseDATA")[i].value)

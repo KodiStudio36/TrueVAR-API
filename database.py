@@ -45,7 +45,7 @@ class Tournaments(Base):
     courts: Mapped[int] = mapped_column(Integer, nullable=False)
     scheduled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     video_ids: Mapped[str] = mapped_column(Text, nullable=True, default=None)
-    draft: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    draft: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     tournament_state: Mapped[str] = mapped_column(Text, nullable=False, default="init")
     discipline: Mapped[str] = mapped_column(Text, nullable=True, default="Kyorugi")
     message: Mapped[str] = mapped_column(Text, nullable=True)
@@ -145,6 +145,18 @@ class Stream_keys(Base):
             "stream_key": self.stream_key,
             "stream_id": self.stream_id
         }
+    
+class Discipline(Base):
+    __tablename__ = "discipline"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name
+        }
 
 
 # initialize engine & SessionLocal (session local lebo readability)
@@ -208,6 +220,7 @@ def tournamentCreate(data):
                 location=data["location"],
                 courts=int(data["courts"]),
                 discipline=data["discipline"],
+                draft=int(data["draft"]),
             )
             session.add(tournament)
             session.commit()
@@ -220,7 +233,7 @@ def tournamentCreate(data):
 def getAllRealTournaments():
     try:
         with SessionLocal() as session:
-            query = select(Tournaments).where(Tournaments.draft == False)
+            query = select(Tournaments).where(Tournaments.draft == 0)
             results = session.scalars(query).all()
             return results
     except SQLAlchemyError:
@@ -229,7 +242,7 @@ def getAllRealTournaments():
 def getAllDraftTournaments():
     try:
         with SessionLocal() as session:
-            query = select(Tournaments).where(Tournaments.draft == True) # I did == True for readability
+            query = select(Tournaments).where(Tournaments.draft == 1) # I did == True for readability
             results = session.scalars(query).all()
             return results
     except SQLAlchemyError:
@@ -632,3 +645,23 @@ def returnFightDataByNameAndTournamentId(name: str, tournament_id: int):
             return result
     except SQLAlchemyError:
         raise RuntimeError("Error getting machine_id by sid")
+    
+def InsertNewDiscipline(name: str):
+    try:
+        with SessionLocal() as session:
+            discipline_row = Discipline(name=name)
+            session.add(discipline_row)
+            session.commit()
+            return True
+    except SQLAlchemyError:
+        raise RuntimeError("Error inserting a new discipline")
+    
+def getAllDisciplines():
+    try:
+        with SessionLocal() as session:
+            query = select(Discipline)
+            r = session.scalars(query).all()
+            print(r)
+            return r
+    except SQLAlchemyError:
+        raise RuntimeError("Error getting all disciplines")

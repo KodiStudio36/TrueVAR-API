@@ -264,3 +264,38 @@ def stop_youtube_stream(youtube, broadcast_id: str):
     ).execute()
 
     return response
+
+
+def build_playlist_description(data):
+    return f"""
+🏆 {data.get("name")}
+
+Welcome to the official livestream playlist for {data.get("name")}.
+
+📍 Location: {data.get("location")}
+📅 Date: {data.get("startDate")}
+🕒 Start time: {data.get("startTime")}
+🥋 Courts: {data.get("courts")}
+
+This playlist contains all live broadcasts from the tournament, separated by court.
+Select the correct court livestream and follow the matches live.
+
+Powered by TrueVAR.
+""".strip()
+
+
+def build_broadcast_description(data, court_number):
+    return f"""
+🏆 {data.get("name")} — Court {court_number}
+
+You are watching the official livestream from Court {court_number}.
+
+📍 Location: {data.get("location")}
+📅 Date: {data.get("startDate")}
+🕒 Start time: {data.get("startTime")}
+
+This stream is part of the {data.get("name")} tournament.
+For other courts, check the tournament playlist on this channel.
+
+Powered by TrueVAR.
+""".strip()

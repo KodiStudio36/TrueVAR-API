@@ -1,7 +1,7 @@
 import datetime
 import click
 from flask.cli import with_appcontext
-from database import InsertNewUSer, InsertNewDevice, Owner
+from database import InsertNewUSer, InsertNewDevice, Owner, InsertNewDiscipline
 
 @click.command("user")
 @click.option("--email", required=True)
@@ -29,3 +29,14 @@ def device(expdate: str, owner: str, name: str):
         raise click.ClickException("Novy device nebol vytvoreny, chyba")
 
     click.echo(f"Device {uspesnost} created")
+
+@click.command("discipline")
+@click.option("--name", required=True)
+@with_appcontext
+def discipline(name: str):
+    uspesnost = InsertNewDiscipline(name=name)
+
+    if not uspesnost:
+        raise click.ClickException("Novy user nebol vytvoreny, chyba")
+
+    click.echo(f"Discipline {name} created")

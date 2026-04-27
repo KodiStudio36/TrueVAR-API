@@ -21,8 +21,9 @@
             <input type="text" id="courts" inputmode="numeric" pattern="[0-9]+" required class="getmethoseDATA">
             <select id="discipline" required class="getmethoseDATA">
                 <option value="" disabled selected hidden>Pick a discipline</option>
-                <option value="taekwondo">Taekwondo</option>
-                <option value="kyorugi">Kyorugi</option>
+                {% for discipline in disciplines %}
+                    <option value="{{ discipline.name }}">{{ discipline.name }}</option>
+                {% endfor %}
             </select>
             <button type="submit">Create</button>
         </form>

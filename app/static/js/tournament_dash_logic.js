@@ -17,6 +17,7 @@ var UPDATING = false
 if (scheduled != "False") {
     schedule.classList.add("disabled")
     schedule.innerHTML = "Scheduled."
+    document.querySelector("#qr_code_gen").style.display = "initial"
 } else {
     updateThumbnailsBtn.style.display = 'none'
 }
@@ -450,3 +451,25 @@ document.querySelector("#message_livestream_broadcast").addEventListener("click"
     });
     alert("Sprava odoslana")
 });
+
+document.querySelector("#qr_code_gen").addEventListener("click", () => {
+    downloadQR(tournament_id)
+});
+async function downloadQR(tournament_id) {
+
+    const response = await fetch(
+        `/dashboard/tournament/playlist-qr/${tournament_id}`
+    );
+
+    const blob = await response.blob();
+
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `playlist_${tournament_id}.pdf`;
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+}

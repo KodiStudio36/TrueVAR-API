@@ -49,6 +49,7 @@ class Tournaments(Base):
     tournament_state: Mapped[str] = mapped_column(Text, nullable=False, default="init")
     discipline: Mapped[str] = mapped_column(Text, nullable=True, default="Kyorugi")
     message: Mapped[str] = mapped_column(Text, nullable=True)
+    playlist_link: Mapped[str] = mapped_column(Text, nullable=True)
 
     def to_dict(self):
         return {
@@ -63,7 +64,8 @@ class Tournaments(Base):
             "video_ids": self.video_ids,
             "draft": self.draft,
             "discipline": self.discipline,
-            "message": self.message
+            "message": self.message,
+            "playlist_link": self.playlist_link
         }
 
 class Devices(Base):
@@ -665,3 +667,12 @@ def getAllDisciplines():
             return r
     except SQLAlchemyError:
         raise RuntimeError("Error getting all disciplines")
+    
+def getPlaylistLinkByTournamenId(tournament_id: int):
+    try:
+        with SessionLocal() as session:
+            query = select(Tournaments.playlist_link).where(Tournaments.id == tournament_id)
+            result = session.scalars(query).first()
+            return result
+    except SQLAlchemyError:
+        raise RuntimeError("Error Link by Tournament_id")

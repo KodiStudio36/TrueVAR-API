@@ -161,3 +161,7 @@ button.live {
 .messageContainer input[type="submit"]:active {
     background: #1557c2;
 }
+
+#qr_code_gen {
+    display: none;
+}

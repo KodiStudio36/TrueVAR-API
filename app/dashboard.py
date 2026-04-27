@@ -2,9 +2,14 @@ from datetime import datetime, timedelta
 from flask import Blueprint, redirect, request, render_template, session
 import pytz
 from werkzeug.security import check_password_hash
-from database import GetPasswordAndIdByEmail, getAllDisciplines, getDevicesByTournamentId, tournamentCreate, getAllRealTournaments, getAllDevicesData, editDevicesTableDb, getTournamentById, editTournamentDb, getVideoIdsByTournamentId, getAllDraftTournaments, deleteTournamentDb, getAllStreamKeys, getScheduledTimesByStreamKey, insertNewCourtSchedule, deleteCourtScheduleTimesByTournamentId, getStreamIdByStreamKey
+from database import GetPasswordAndIdByEmail, getAllDisciplines, getDevicesByTournamentId, getPlaylistLinkByTournamenId, tournamentCreate, getAllRealTournaments, getAllDevicesData, editDevicesTableDb, getTournamentById, editTournamentDb, getVideoIdsByTournamentId, getAllDraftTournaments, deleteTournamentDb, getAllStreamKeys, getScheduledTimesByStreamKey, insertNewCourtSchedule, deleteCourtScheduleTimesByTournamentId, getStreamIdByStreamKey
 from youtube import build_broadcast_description, build_playlist_description, create_broadcast, create_playlist, get_youtube_service, add_video_to_playlist, set_thumbnail, delete_broadcast, bind_broadcast_to_stream
 from .decorators import login_required
+from flask import send_file
+from io import BytesIO
+import qrcode
+from reportlab.platypus import SimpleDocTemplate, Image
+from reportlab.lib.pagesizes import A4
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -293,4 +298,37 @@ def schedule():
     for key, value in data.items():
         editTournamentDb(tournament_id, key, value)
 
+    editTournamentDb(tournament_id, "playlist_link", f"https://www.youtube.com/playlist?list={playlist_id}")
+
     return {"message": "ok"}, 200
+
+@dashboard_bp.route("/tournament/playlist-qr/<int:tournament_id>")
+@login_required
+def playlist_qr_pdf(tournament_id):
+
+    playlist_url = getPlaylistLinkByTournamenId(int(tournament_id))
+
+    # generate QR image
+    qr_img = qrcode.make(playlist_url)
+
+    qr_buffer = BytesIO()
+    qr_img.save(qr_buffer)
+    qr_buffer.seek(0)
+
+    # generate PDF in memory
+    pdf_buffer = BytesIO()
+
+    doc = SimpleDocTemplate(pdf_buffer)
+
+    qr_image = Image(qr_buffer, width=300, height=300)
+
+    doc.build([qr_image])
+
+    pdf_buffer.seek(0)
+
+    return send_file(
+        pdf_buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"playlist_qr_code.pdf"
+    )

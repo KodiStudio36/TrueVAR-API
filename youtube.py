@@ -299,3 +299,24 @@ For other courts, check the tournament playlist on this channel.
 
 Powered by TrueVAR.
 """.strip()
+
+def delete_playlist(youtube, playlist_id: str):
+    """
+    Deletes a YouTube playlist by its ID.
+
+    Returns:
+    - True if deletion succeeded
+    - False if deletion failed
+    """
+    try:
+        request = youtube.playlists().delete(
+            id=playlist_id
+        )
+        request.execute()
+
+        print(f"✅ Success: Deleted playlist ID {playlist_id}.")
+        return True
+
+    except Exception as e:
+        print(f"❌ Error: Failed to delete playlist ID {playlist_id}. {e}")
+        return False

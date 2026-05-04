@@ -88,6 +88,10 @@
                     <td class="heading">Discipline</td>
                     <td data-col="discipline" class="editable">{{ tournament.discipline }}</td>
                 </tr>
+                <tr>
+                    <td class="heading">Visibility - YT</td>
+                    <td data-col="tournament_visibility" id="visibility">{{ tournament.tournament_visibility }}</td>
+                </tr>
             </table>
         </div>
         <div class="right">
@@ -104,8 +108,8 @@
         <input type="submit" id="message_livestream_broadcast">
     </div>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-    <script src="/static/js/tournament_edit.js"></script>
-    <script src="/static/js/tournament_dash_logic.js"></script>
+    <script src="/static/js/tournament_edit.js" type="module"></script>
+    <script src="/static/js/tournament_dash_logic.js" type="module"></script>
     <script>
 const socket = io("http://localhost:5000", {
     auth: {

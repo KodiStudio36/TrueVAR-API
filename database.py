@@ -50,6 +50,7 @@ class Tournaments(Base):
     discipline: Mapped[str] = mapped_column(Text, nullable=True, default="Kyorugi")
     message: Mapped[str] = mapped_column(Text, nullable=True)
     playlist_link: Mapped[str] = mapped_column(Text, nullable=True)
+    tournament_visibility: Mapped[str] = mapped_column(Text, nullable=False, default="public")
 
     def to_dict(self):
         return {

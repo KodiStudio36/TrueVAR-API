@@ -1,3 +1,5 @@
+import { setupEditableCells } from "./tournament_edit.js"
+
 const golive1 = document.querySelector("#golive1")
 const golive2 = document.querySelector("#golive2")
 const startButton = document.querySelector("#startButton")
@@ -18,11 +20,16 @@ if (scheduled != "False") {
     schedule.classList.add("disabled")
     schedule.innerHTML = "Scheduled."
     document.querySelector("#qr_code_gen").style.display = "initial"
+    console.log("scheduled is not false")
 } else {
+    document.getElementById("visibility").classList.add("editable")
     updateThumbnailsBtn.style.display = 'none'
 }
+export const editableCells = document.querySelectorAll(".editable")
 
 const main = () => {
+    console.log(editableCells)
+    setupEditableCells();
     var element_var = '';
     for (let n = 0; n < number_of_courts; n++) {
         let id = n + 1;
@@ -88,6 +95,7 @@ schedule.addEventListener("click",async () => {
     data.append("location", elements_which_I_want_data_from[4].innerHTML)
     data.append("courts", document.querySelector("#courtnum").innerHTML)
     data.append("id", tournament_id)
+    data.append("tournament_visibility", document.getElementById("visibility").innerHTML)
 
     var INVALID = false
     Array.from(thumbnailInputs).forEach(element => {

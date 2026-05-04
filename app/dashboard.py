@@ -3,7 +3,7 @@ from flask import Blueprint, redirect, request, render_template, session
 import pytz
 from werkzeug.security import check_password_hash
 from database import GetPasswordAndIdByEmail, getAllDisciplines, getDevicesByTournamentId, getPlaylistLinkByTournamenId, tournamentCreate, getAllRealTournaments, getAllDevicesData, editDevicesTableDb, getTournamentById, editTournamentDb, getVideoIdsByTournamentId, getAllDraftTournaments, deleteTournamentDb, getAllStreamKeys, getScheduledTimesByStreamKey, insertNewCourtSchedule, deleteCourtScheduleTimesByTournamentId, getStreamIdByStreamKey
-from youtube import build_broadcast_description, build_playlist_description, create_broadcast, create_playlist, get_youtube_service, add_video_to_playlist, set_thumbnail, delete_broadcast, bind_broadcast_to_stream
+from youtube import build_broadcast_description, build_playlist_description, create_broadcast, create_playlist, delete_playlist, get_youtube_service, add_video_to_playlist, set_thumbnail, delete_broadcast, bind_broadcast_to_stream
 from .decorators import login_required
 from flask import send_file
 from io import BytesIO
@@ -80,6 +80,10 @@ def tournamentCreatePage():
 @login_required
 def editTournament():
     data = request.get_json()
+
+    ALLOWED_VISIBILITY_STATUSES = ["public", "private", "unlisted"]
+    if data["column"] == "tournament_visibility" and data["value"] not in ALLOWED_VISIBILITY_STATUSES:
+        return {"message": "Invalid visibility status"}, 400
 
     status = editTournamentDb(data["id"], data["column"], data["value"])
 
@@ -178,6 +182,10 @@ def deleteTournament(id):
         yt = get_youtube_service()
         video_ids = data["video_ids"]
 
+        tournament_link = getPlaylistLinkByTournamenId(id)
+        playlist_id = tournament_link.split("?list=")[-1]
+        delete_playlist(yt, playlist_id)
+        
         for broadcast_id in video_ids.split(" "):
             status = delete_broadcast(yt, broadcast_id)
             # on yt error
@@ -197,6 +205,7 @@ def deleteTournament(id):
 @login_required
 def schedule():
     tournament_id = request.form.get("id")
+    tournament_visibility = request.form.get("tournament_visibility")
     data = {
         "name": request.form.get("name"),
         "desc": request.form.get("desc"),
@@ -227,14 +236,14 @@ def schedule():
 
     playlist_desc = build_playlist_description(data)
     # creating playlist
-    playlist_id = create_playlist(yt, data.get("name"), playlist_desc, privacy="public")
+    playlist_id = create_playlist(yt, data.get("name"), playlist_desc, privacy=tournament_visibility)
 
     for i in range(1, int(data.get("courts")) + 1):
         court_set = False
         title = f"{data.get("name")} Court {i}"
         livestream_desc = build_broadcast_description(data, i)
 
-        video_id = create_broadcast(yt, title, livestream_desc, start_time, privacy="public")
+        video_id = create_broadcast(yt, title, livestream_desc, start_time, privacy=tournament_visibility)
         video_ids.append(video_id)
         # court num
         # get all stream keys and iterate over them

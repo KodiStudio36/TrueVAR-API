@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // live updating of devices
     const deviceTable = document.querySelector(".devices")
     const trashButtons = document.querySelectorAll(".trashIcon")
+    const promoteIcons = document.querySelectorAll(".promote")
     const cancelButton = document.getElementById("cancel")
     const removeButton = document.getElementById("remove")
     const you_sureContainer = document.querySelector(".yousureCon")
@@ -39,6 +40,28 @@ document.addEventListener("DOMContentLoaded", () => {
             REMOVE_ID = remove_id
             youSureHeading.innerHTML = remove_name
             you_sureContainer.style.display = 'flex'
+        });
+    });
+    Array.from(promoteIcons).forEach(icon => {
+        icon.addEventListener("click",async () => {
+            let id = icon.attributes["data-id"].value
+
+            const response = await fetch("/dashboard/tournament/promote", {
+                method: "POST",
+                headers: {"Content-type": "application/json"},
+                body: JSON.stringify({
+                    id: id
+                })
+            });
+            switch (response.status) {
+                case 200:
+                    alert("success")
+                    break;
+                case 500:
+                    alert("Server Error")
+                    break;
+            }
+            window.location.reload()
         });
     });
     cancelButton.addEventListener("click", () => {

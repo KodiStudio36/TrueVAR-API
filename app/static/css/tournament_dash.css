@@ -108,6 +108,7 @@ h1 {
 button#schedule.disabled,
 #startButton.disabled,
 #golive2.disabled,
+#archive.disabled,
 #golive1.disabled {
     background-color: gray !important;
     cursor: not-allowed !important;
@@ -165,4 +166,12 @@ button.live {
 
 #qr_code_gen {
     display: none;
+}
+
+#archive {
+    position: fixed;
+    z-index: 10000;
+    bottom: 20px;
+    right: 20px;
+    cursor: pointer;
 }

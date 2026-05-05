@@ -58,6 +58,25 @@ tbody tr:hover .trashIcon {
     visibility: visible;
     cursor: pointer;
 }
+tbody .promote {
+    text-align: center;
+    padding: 2px 5px;
+    background: #2f7cf6;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    text-decoration: none;
+    position: absolute;
+    right: 80px;
+    bottom: 5px;
+    visibility: hidden;
+}
+tbody tr:hover .promote {
+    visibility: visible;
+    cursor: pointer;
+}
 table.devices td:hover {
     background-color: #b3b3b3;
     cursor: pointer;

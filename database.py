@@ -45,8 +45,7 @@ class Tournaments(Base):
     courts: Mapped[int] = mapped_column(Integer, nullable=False)
     scheduled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     video_ids: Mapped[str] = mapped_column(Text, nullable=True, default=None)
-    draft: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    tournament_state: Mapped[str] = mapped_column(Text, nullable=False, default="init")
+    tournament_state: Mapped[str] = mapped_column(Text, nullable=False, default="init") # tournament state can be: "draft", "init", "archived"
     discipline: Mapped[str] = mapped_column(Text, nullable=True, default="Kyorugi")
     message: Mapped[str] = mapped_column(Text, nullable=True)
     playlist_link: Mapped[str] = mapped_column(Text, nullable=True)
@@ -63,7 +62,7 @@ class Tournaments(Base):
             "courts": self.courts,
             "scheduled": self.scheduled,
             "video_ids": self.video_ids,
-            "draft": self.draft,
+            "tournament_state": self.tournament_state,
             "discipline": self.discipline,
             "message": self.message,
             "playlist_link": self.playlist_link
@@ -223,7 +222,7 @@ def tournamentCreate(data):
                 location=data["location"],
                 courts=int(data["courts"]),
                 discipline=data["discipline"],
-                draft=int(data["draft"]),
+                tournament_state=data["tournament_state"],
             )
             session.add(tournament)
             session.commit()
@@ -233,24 +232,15 @@ def tournamentCreate(data):
     except ValueError:
         raise RuntimeError("Invalid string to int conversion")
     
-def getAllRealTournaments():
+def getTournamentsByStatus(status: str):
     try:
         with SessionLocal() as session:
-            query = select(Tournaments).where(Tournaments.draft == 0)
+            query = select(Tournaments).where(Tournaments.tournament_state == status)
             results = session.scalars(query).all()
             return results
     except SQLAlchemyError:
         raise RuntimeError("Error fetching tournaments...")
 
-def getAllDraftTournaments():
-    try:
-        with SessionLocal() as session:
-            query = select(Tournaments).where(Tournaments.draft == 1) # I did == True for readability
-            results = session.scalars(query).all()
-            return results
-    except SQLAlchemyError:
-        raise RuntimeError("Error fetching tournaments...")
-    
 def getAllTournamentsNames():
     try:
         with SessionLocal() as session:
@@ -677,3 +667,22 @@ def getPlaylistLinkByTournamenId(tournament_id: int):
             return result
     except SQLAlchemyError:
         raise RuntimeError("Error Link by Tournament_id")
+    
+def getTournamentStatusById(tournament_id: int):
+    try:
+        with SessionLocal() as session:
+            query = select(Tournaments.playlist_link).where(Tournaments.id == tournament_id)
+            result = session.scalars(query).first()
+            return result
+    except SQLAlchemyError:
+        raise RuntimeError("Error getting tournaments status by id")
+    
+def changeTournamentStatus(tournament_id: int, status: str): # this is used for drafting and archiving
+    try:
+        with SessionLocal() as session:
+            query = update(Tournaments).where(Tournaments.id == tournament_id).values(tournament_state=status)
+            session.execute(query)
+            session.commit()
+            return True
+    except SQLAlchemyError:
+        raise RuntimeError("Error while changing tournament status")

@@ -1,8 +1,8 @@
-from datetime import datetime, timedelta
-from flask import Blueprint, redirect, request, render_template, session
+from datetime import datetime
+from flask import Blueprint, request, render_template, session
 import pytz
 from werkzeug.security import check_password_hash
-from database import GetPasswordAndIdByEmail, getAllDisciplines, getDevicesByTournamentId, getPlaylistLinkByTournamenId, tournamentCreate, getAllRealTournaments, getAllDevicesData, editDevicesTableDb, getTournamentById, editTournamentDb, getVideoIdsByTournamentId, getAllDraftTournaments, deleteTournamentDb, getAllStreamKeys, getScheduledTimesByStreamKey, insertNewCourtSchedule, deleteCourtScheduleTimesByTournamentId, getStreamIdByStreamKey
+from database import GetPasswordAndIdByEmail, changeTournamentStatus, getAllDisciplines, getDevicesByTournamentId, getPlaylistLinkByTournamenId, getTournamentsByStatus, tournamentCreate, getAllDevicesData, editDevicesTableDb, getTournamentById, editTournamentDb, getVideoIdsByTournamentId, deleteTournamentDb, getAllStreamKeys, getScheduledTimesByStreamKey, insertNewCourtSchedule, deleteCourtScheduleTimesByTournamentId, getStreamIdByStreamKey
 from youtube import build_broadcast_description, build_playlist_description, create_broadcast, create_playlist, delete_playlist, get_youtube_service, add_video_to_playlist, set_thumbnail, delete_broadcast, bind_broadcast_to_stream
 from .decorators import login_required
 from flask import send_file
@@ -42,10 +42,11 @@ def login():
 @dashboard_bp.route("/")
 @login_required
 def dashboard():
-    tournamentData = getAllRealTournaments()
+    tournaments_init = getTournamentsByStatus("init")
+    tournaments_draft = getTournamentsByStatus("draft")
+    tournaments_archived = getTournamentsByStatus("archived")
     devicesData = getAllDevicesData()
-    drafts = getAllDraftTournaments()
-    return render_template("dashboard.html",tournamentData=tournamentData, devicesData=devicesData, drafts=drafts)
+    return render_template("dashboard.html",tournamentData=tournaments_init, devicesData=devicesData, drafts=tournaments_draft, archived=tournaments_archived)
 
 @dashboard_bp.route("/tournament/create", methods=["GET", "POST"])
 @login_required
@@ -62,7 +63,7 @@ def tournamentCreatePage():
             "location": request.form.get("location"),
             "courts": request.form.get("courts"),
             "discipline": request.form.get("discipline"),
-            "draft": 0
+            "tournament_state": "init"
         }
 
         # validacia vstupov
@@ -157,7 +158,7 @@ def public_tournament_create():
             "location": request.form.get("location"),
             "courts": request.form.get("courts"),
             "discipline": request.form.get("discipline"),
-            "draft": 1
+            "tournament_state": "draft"
         }
 
         # validacia vstupov
@@ -212,8 +213,7 @@ def schedule():
         "startDate": request.form.get("startDate"),
         "startTime": request.form.get("startTime"),
         "location": request.form.get("location"),
-        "courts": request.form.get("courts"),
-        "draft": 0
+        "courts": request.form.get("courts")
     }
     date_str = data["startDate"]
     # validacia vstupov
@@ -341,3 +341,29 @@ def playlist_qr_pdf(tournament_id):
         as_attachment=True,
         download_name=f"playlist_qr_code.pdf"
     )
+
+@dashboard_bp.route("/tournament/archive", methods=["POST"])
+@login_required
+def archive():
+    data = request.get_json()
+    tournament_id = data.get("id")
+
+    status = changeTournamentStatus(tournament_id, "archived")
+
+    if not status:
+        return {}, 500
+
+    return {}, 200
+
+@dashboard_bp.route("/tournament/promote", methods=["POST"])
+@login_required
+def promote():
+    data = request.get_json()
+    tournament_id = data.get("id")
+
+    status = changeTournamentStatus(tournament_id, "init")
+
+    if not status:
+        return {}, 500
+
+    return {}, 200

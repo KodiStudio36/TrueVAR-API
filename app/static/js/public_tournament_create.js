@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 break;
             case 200:
                 alert("Success")
-                window.location.href = "/dashboard/"
+                window.location.href = "/"
                 break;
             case 500:
                 alert("Server error")

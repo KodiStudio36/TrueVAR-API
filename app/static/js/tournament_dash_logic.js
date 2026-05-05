@@ -28,7 +28,6 @@ if (scheduled != "False") {
 export const editableCells = document.querySelectorAll(".editable")
 
 const main = () => {
-    console.log(editableCells)
     setupEditableCells();
     var element_var = '';
     for (let n = 0; n < number_of_courts; n++) {
@@ -480,4 +479,31 @@ async function downloadQR(tournament_id) {
     document.body.appendChild(a);
     a.click();
     a.remove();
+}
+
+const archivedButton = document.querySelector("#archive")
+if (informationHeader.attributes["data-state"].value == "init") {
+    archivedButton.addEventListener("click",async () => {
+        console.log(tournament_id)
+        const response = await fetch("/dashboard/tournament/archive", {
+            method: "POST",
+            headers: {"Content-type": "application/json"},
+            body: JSON.stringify({
+                id: tournament_id
+            })
+        });
+    
+        switch (response.status) {
+            case 500:
+                alert("Archiving this tournament failed, server response: 500");
+                break;
+            case 200:
+                alert("Tournament archived. 200");
+                break;
+        }
+        window.location.reload()
+    })
+} else {
+    archivedButton.classList.add("disabled")
+    archivedButton.innerHTML = "Tournament archived."
 }

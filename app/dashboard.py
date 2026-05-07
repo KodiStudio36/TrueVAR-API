@@ -8,8 +8,9 @@ from .decorators import login_required
 from flask import send_file
 from io import BytesIO
 import qrcode
-from reportlab.platypus import SimpleDocTemplate, Image
-from reportlab.lib.pagesizes import A4
+from PIL import Image as PILImage
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -314,24 +315,68 @@ def schedule():
 @dashboard_bp.route("/tournament/playlist-qr/<int:tournament_id>")
 @login_required
 def playlist_qr_pdf(tournament_id):
-
     playlist_url = getPlaylistLinkByTournamenId(int(tournament_id))
 
-    # generate QR image
-    qr_img = qrcode.make(playlist_url)
+    # Path to your poster image
+    poster_path = "app/static/livestream-poster.png"
+    # Load poster to get aspect ratio
+    poster = PILImage.open(poster_path)
+    poster_width_px, poster_height_px = poster.size
+    # Use poster size as PDF size
+    # 1 pixel = 1 PDF point here
+    page_width = poster_width_px
+    page_height = poster_height_px
 
-    qr_buffer = BytesIO()
-    qr_img.save(qr_buffer)
-    qr_buffer.seek(0)
-
-    # generate PDF in memory
     pdf_buffer = BytesIO()
 
-    doc = SimpleDocTemplate(pdf_buffer)
+    c = canvas.Canvas(pdf_buffer, pagesize=(page_width, page_height))
 
-    qr_image = Image(qr_buffer, width=300, height=300)
+    # Draw poster over the full PDF page
+    c.drawImage(
+        poster_path,
+        0,
+        0,
+        width=page_width,
+        height=page_height
+    )
+    # Generate QR code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=10,
+        border=2
+    )
+    qr.add_data(playlist_url)
+    qr.make(fit=True)
+    qr_img = qr.make_image(
+        fill_color="black",
+        back_color="white"
+    ).convert("RGB")
 
-    doc.build([qr_image])
+    qr_buffer = BytesIO()
+    qr_img.save(qr_buffer, format="PNG")
+    qr_buffer.seek(0)
+
+    qr_reader = ImageReader(qr_buffer)
+
+    # QR placement
+    # ReportLab coordinates start from BOTTOM LEFT, not top left.
+    #
+    # For your uploaded poster, approximate values:
+    qr_size = 430
+    qr_x = 310
+    qr_y = 420
+
+    c.drawImage(
+        qr_reader,
+        qr_x,
+        qr_y,
+        width=qr_size,
+        height=qr_size
+    )
+
+    c.showPage()
+    c.save()
 
     pdf_buffer.seek(0)
 
@@ -339,7 +384,7 @@ def playlist_qr_pdf(tournament_id):
         pdf_buffer,
         mimetype="application/pdf",
         as_attachment=True,
-        download_name=f"playlist_qr_code.pdf"
+        download_name="playlist_qr_code.pdf"
     )
 
 @dashboard_bp.route("/tournament/archive", methods=["POST"])

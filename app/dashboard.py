@@ -2,6 +2,7 @@ from datetime import datetime
 from flask import Blueprint, request, render_template, session
 import pytz
 from werkzeug.security import check_password_hash
+from app.helper_functions import split_text_by_words
 from database import GetPasswordAndIdByEmail, changeTournamentStatus, getAllDisciplines, getDevicesByTournamentId, getPlaylistLinkByTournamenId, getTournamentsByStatus, tournamentCreate, getAllDevicesData, editDevicesTableDb, getTournamentById, editTournamentDb, getVideoIdsByTournamentId, deleteTournamentDb, getAllStreamKeys, getScheduledTimesByStreamKey, insertNewCourtSchedule, deleteCourtScheduleTimesByTournamentId, getStreamIdByStreamKey
 from youtube import build_broadcast_description, build_playlist_description, create_broadcast, create_playlist, delete_playlist, get_youtube_service, add_video_to_playlist, set_thumbnail, delete_broadcast, bind_broadcast_to_stream
 from .decorators import login_required
@@ -11,6 +12,12 @@ import qrcode
 from PIL import Image as PILImage
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+pdfmetrics.registerFont(
+    TTFont("BebasNeue", "app/static/BebasNeue.ttf")
+)
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -315,7 +322,9 @@ def schedule():
 @dashboard_bp.route("/tournament/playlist-qr/<int:tournament_id>")
 @login_required
 def playlist_qr_pdf(tournament_id):
-    playlist_url = getPlaylistLinkByTournamenId(int(tournament_id))
+    tournament = getTournamentById(int(tournament_id))
+    playlist_url = tournament.playlist_link
+    name = tournament.name
 
     # Path to your poster image
     poster_path = "app/static/livestream-poster.png"
@@ -339,6 +348,30 @@ def playlist_qr_pdf(tournament_id):
         width=page_width,
         height=page_height
     )
+
+    # Text styling
+    c.setFillColorRGB(1, 1, 1)
+    FONT_SIZE = 120
+    line_height = 100
+
+    # Position
+    text_x = page_width / 2
+    text_y = page_height - 180
+
+    # Split heading into multiple lines
+    top_text_lines = split_text_by_words("BRATISLAVA OPEN & KOREAN AMBASSADORS CUP 2026", max_chars=20)
+    if len(top_text_lines) > 2:
+        FONT_SIZE = 100
+        line_height = 90
+
+    c.setFont("BebasNeue", FONT_SIZE)
+
+    for index, line in enumerate(top_text_lines):
+        c.drawCentredString(
+            text_x,
+            text_y - (index * line_height),
+            line
+        )
     # Generate QR code
     qr = qrcode.QRCode(
         version=1,

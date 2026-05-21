@@ -13,7 +13,8 @@ def create_app():
     app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
     app.register_blueprint(api_bp, url_prefix="/api")
 
-    from .cli import user, device, discipline
+    from .cli import init_db_command, user, device, discipline
+    app.cli.add_command(init_db_command)
     app.cli.add_command(user)
     app.cli.add_command(device)
     app.cli.add_command(discipline)

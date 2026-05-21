@@ -1,7 +1,14 @@
 import datetime
 import click
 from flask.cli import with_appcontext
-from database import InsertNewUSer, InsertNewDevice, Owner, InsertNewDiscipline
+from database import InsertNewUSer, InsertNewDevice, Owner, InsertNewDiscipline, init_db
+
+@click.command("init-db")
+@with_appcontext
+def init_db_command():
+    """Initialize the database."""
+    init_db()
+    print("Database initialized.")
 
 @click.command("user")
 @click.option("--email", required=True)

@@ -21,8 +21,8 @@ def create_app():
     app.config["SECRET_KEY"] = os.getenv("SESSION_SECRET_KEY", "DEFAULTKEY-FAILSAFE-988572397426")
 
     # create db + tables
-    from database import init_db
-    init_db()
+    # from database import init_db
+    # init_db()
 
     from app import socket_events
     app_socketio.init_app(app)

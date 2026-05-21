@@ -232,7 +232,7 @@ def schedule():
     # yt section
     data["startTime"] = data["startTime"][:5]
     start_time = datetime.strptime(
-        f"{data["startDate"]} {data["startTime"]}",
+        f"{data['startDate']} {data['startTime']}",
         "%Y-%m-%d %H:%M"
     )
 
@@ -248,7 +248,7 @@ def schedule():
 
     for i in range(1, int(data.get("courts")) + 1):
         court_set = False
-        title = f"{data.get("name")} Court {i}"
+        title = f"{data.get('name')} Court {i}"
         livestream_desc = build_broadcast_description(data, i)
 
         video_id = create_broadcast(yt, title, livestream_desc, start_time, privacy=tournament_visibility)

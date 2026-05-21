@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    document.querySelector("form").addEventListener("submit",async (e) => {
+    document.querySelector("form").addEventListener("submit", async (e) => {
         e.preventDefault()
         let data = {
             email: document.querySelector("input").value,
@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log(data)
         const response = await fetch("/dashboard/auth/login", {
             method: "POST",
-            headers: {"Content-type" : "application/json"},
+            headers: { "Content-type": "application/json" },
             body: JSON.stringify(data)
         });
         console.log(`Response: ${response.status}`)
@@ -22,8 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.querySelectorAll("input")[1].style.outline = "red"
                 break;
             case 200:
-                alert("Success")
-                window.location.href = "/"
+                window.location.href = "/dashboard"
                 break;
         }
         return 0

@@ -359,7 +359,7 @@ def playlist_qr_pdf(tournament_id):
     text_y = page_height - 180
 
     # Split heading into multiple lines
-    top_text_lines = split_text_by_words("BRATISLAVA OPEN & KOREAN AMBASSADORS CUP 2026", max_chars=20)
+    top_text_lines = split_text_by_words("Cassovia Open 2026 Kyorugi", max_chars=20)
     if len(top_text_lines) > 2:
         FONT_SIZE = 100
         line_height = 90

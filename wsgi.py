@@ -16,7 +16,5 @@ def logout():
     session.clear()
     return render_template("index.html", username=session.get("username"))
 
-if __name__ == "__main__":
-    PORT = int(os.getenv("PORT"))
-    # app.run(port=PORT, debug=True, host="0.0.0.0")
-    app_socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+# if __name__ == "__main__":
+#     app_socketio.run(app, host="0.0.0.0", port=5000)

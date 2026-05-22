@@ -15,20 +15,20 @@ export const setupEditableCells = () => {
             if (newValue == null) {
                 newValue = prompt("Zadaj novu hodnotu.\n\tESC for exit")
             }
-            
+
             if (newValue == null) return
-            
+
             console.log(column, newValue)
             const response = await fetch("/dashboard/tournament/edit", {
                 method: "POST",
-                headers: {"Content-type": "application/json"},
+                headers: { "Content-type": "application/json" },
                 body: JSON.stringify({
-                  column: column,
-                  value: newValue,
-                  id: id  
+                    column: column,
+                    value: newValue,
+                    id: id
                 })
             });
-    
+
             switch (response.status) {
                 case 500:
                     alert("Severside error: code 500")
@@ -37,7 +37,6 @@ export const setupEditableCells = () => {
                     alert("Invalid visibility status - visibility status MUST be: 'public' or 'private' or 'unlisted'.")
                     break;
                 case 200:
-                    alert("Success: 200")
                     break;
             }
             window.location.reload()

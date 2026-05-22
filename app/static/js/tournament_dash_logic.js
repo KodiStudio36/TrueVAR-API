@@ -11,7 +11,7 @@ const updateThumbnailsBtn = document.querySelector("#thumbupdate")
 
 const number_of_courts = parseInt(courtElement.innerHTML)
 const scheduled = courtElement.attributes["data-scheduled"].value
-const informationHeader = document.querySelector("h6") 
+const informationHeader = document.querySelector("h6")
 const tournament_id = informationHeader.attributes["data-id"].value
 const tournament_state = informationHeader.attributes["data-state"].value
 var UPDATING = false
@@ -39,7 +39,7 @@ const main = () => {
 };
 document.addEventListener("DOMContentLoaded", main)
 
-updateThumbnailsBtn.addEventListener("click",async () => {
+updateThumbnailsBtn.addEventListener("click", async () => {
     if (UPDATING == true || !scheduled) return
     UPDATING = true
     var data = new FormData()
@@ -47,7 +47,7 @@ updateThumbnailsBtn.addEventListener("click",async () => {
     const thumbnailInputs = document.querySelectorAll(".collect")
     Array.from(thumbnailInputs).forEach(element => {
         let file = element.files[0]
-        
+
         if (file == undefined) {
             element.style.outline = '1px solid red'
             INVALID = true
@@ -70,7 +70,6 @@ updateThumbnailsBtn.addEventListener("click",async () => {
     animate(updateThumbnailsBtn, "done", "Update thumbnails")
     switch (response.status) {
         case 200:
-            alert("Thumbanils successfully updated.")
             window.location.reload()
             return
         case 500:
@@ -80,7 +79,7 @@ updateThumbnailsBtn.addEventListener("click",async () => {
     UPDATING = false
 });
 
-schedule.addEventListener("click",async () => {
+schedule.addEventListener("click", async () => {
     if (scheduled != "False") return
 
     const thumbnailInputs = document.querySelectorAll(".collect")
@@ -99,7 +98,7 @@ schedule.addEventListener("click",async () => {
     var INVALID = false
     Array.from(thumbnailInputs).forEach(element => {
         let file = element.files[0]
-        
+
         if (file == undefined) {
             element.style.outline = '1px solid red'
             INVALID = true
@@ -132,7 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const goLiveButton1s = document.querySelectorAll(".goLiveButton1")
     const goLiveButton2s = document.querySelectorAll(".goLiveButton2")
     const startStreamBtns = document.querySelectorAll(".startStreamBtn")
-    
+
     Array.from(goLiveButton1s).forEach(button => {
         button.addEventListener("click", async () => {
             let machine_id = button.attributes["data-machine-id"].value
@@ -143,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
             animate(button, "load")
             await fetch(`/api/dashboard/livestream`, {
                 method: "POST",
-                headers: {"Content-type": "application/json"},
+                headers: { "Content-type": "application/json" },
                 body: JSON.stringify({
                     machine_id: machine_id,
                     action: action,
@@ -169,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
     Array.from(goLiveButton2s).forEach(button => {
-        button.addEventListener("click",async () => {
+        button.addEventListener("click", async () => {
             if (button.classList.contains("disabled")) return
             let machine_id = button.attributes["data-machine-id"].value
             let action = button.attributes["data-action"].value
@@ -179,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
             animate(button, "load")
             await fetch(`/api/dashboard/stream`, {
                 method: "POST",
-                headers: {"Content-type": "application/json"},
+                headers: { "Content-type": "application/json" },
                 body: JSON.stringify({
                     machine_id: machine_id,
                     action: action,
@@ -196,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // ready up the third button
                 document.querySelector(`.startStreamBtn[data-machine-id="${machine_id}"]`).className = "startStreamBtn active"
             } else {
-                
+
                 button.setAttribute("data-action", "start")
                 button.classList.replace("live", "active")
                 animate(button, "done", "Go Live")
@@ -207,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
     Array.from(startStreamBtns).forEach(button => {
-        button.addEventListener("click",async () => {
+        button.addEventListener("click", async () => {
             if (button.classList.contains("disabled")) return
             let machine_id = button.attributes["data-machine-id"].value
             let action = button.attributes["data-action"].value
@@ -215,14 +214,14 @@ document.addEventListener("DOMContentLoaded", () => {
             animate(button, "load")
             await fetch("/api/dashboard/tournament", {
                 method: "POST",
-                headers: {"Content-type": "application/json"},
+                headers: { "Content-type": "application/json" },
                 body: JSON.stringify({
                     machine_id: machine_id,
                     action: action,
                     send_mode: "unicast"
                 })
             });
-            
+
             if (action == "start") {
                 button.setAttribute("data-action", "stop")
                 button.classList.replace("active", "live")
@@ -237,45 +236,45 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-golive1.addEventListener("click",async () => {
+golive1.addEventListener("click", async () => {
     if (golive1.classList.contains("disabled") || golive2.classList.contains("live")) return
-        let action = golive1.attributes["data-action"].value
-        animate(golive1, "load")
-        await fetch(`/api/dashboard/livestream`, {
-            method: "POST",
-            headers: {"Content-type": "application/json"},
-            body: JSON.stringify({
-                action: action,
-                send_mode: "broadcast"
-            })
-        });
-        window.location.reload()
+    let action = golive1.attributes["data-action"].value
+    animate(golive1, "load")
+    await fetch(`/api/dashboard/livestream`, {
+        method: "POST",
+        headers: { "Content-type": "application/json" },
+        body: JSON.stringify({
+            action: action,
+            send_mode: "broadcast"
+        })
     });
-golive2.addEventListener("click",async () => {
+    window.location.reload()
+});
+golive2.addEventListener("click", async () => {
     if (golive2.classList.contains("disabled") || startButton.classList.contains("live")) return
 
-        let action = golive2.attributes["data-action"].value
-        animate(golive2, "load")
-        await fetch(`/api/dashboard/stream`, {
-            method: "POST",
-            headers: {"Content-type": "application/json"},
-            body: JSON.stringify({
-                action: action,
-                send_mode: "broadcast"
-            })
-        });
-        window.location.reload()
+    let action = golive2.attributes["data-action"].value
+    animate(golive2, "load")
+    await fetch(`/api/dashboard/stream`, {
+        method: "POST",
+        headers: { "Content-type": "application/json" },
+        body: JSON.stringify({
+            action: action,
+            send_mode: "broadcast"
+        })
+    });
+    window.location.reload()
 });
 startButton.addEventListener("click", () => {
-    startButton.addEventListener("click",async () => {
+    startButton.addEventListener("click", async () => {
         if (startButton.classList.contains("disabled")) return
-        
+
         let action = startButton.attributes["data-action"].value
-        
+
         animate(startButton, "load")
         await fetch("/api/dashboard/tournament", {
             method: "POST",
-            headers: {"Content-type": "application/json"},
+            headers: { "Content-type": "application/json" },
             body: JSON.stringify({
                 action: action,
                 send_mode: "broadcast"
@@ -285,7 +284,7 @@ startButton.addEventListener("click", () => {
     });
 });
 
-const animate = (element, action, newInnerHTML=null) => {
+const animate = (element, action, newInnerHTML = null) => {
     // action can be: "load", "done"
     if (action == "load") {
 
@@ -314,7 +313,7 @@ const setupButtonUnicast = (machine_id, state) => {
             golive2_unicast.className = "goLiveButton2 disabled"
             startStream_unicast.className = "startStreamBtn disabled"
             break;
-            
+
         case "1":
             golive1_unicast.setAttribute("data-action", "stop")
             golive1_unicast.innerHTML = "Stop Live"
@@ -351,7 +350,7 @@ const golive1_deviceButtons = document.querySelectorAll(".goLiveButton1")
 const golive2_deviceButtons = document.querySelectorAll(".goLiveButton2")
 const startStream_deviceButtons = document.querySelectorAll(".startStreamBtn")
 
-document.addEventListener("DOMContentLoaded",async () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
     let rows = document.querySelectorAll(".deviceRow")
     Array.from(rows).forEach(element => {
@@ -391,7 +390,7 @@ const setupButtonBroadcast = () => {
     Array.from(startStream_deviceButtons).forEach(button => {
         if (!button.classList.contains("live")) startStreambuttons_live = false
     });
-    
+
     if (goliveButtons_1_Live) {
         golive1.classList = "live"
         golive1.setAttribute("data-action", "stop")
@@ -413,7 +412,7 @@ const setupButtonBroadcast = () => {
         startButton.className = ""
         startButton.setAttribute("data-action", "start")
         startButton.innerHTML = "Start Stream"
-    } 
+    }
     if (startStreambuttons_live) {
         golive1.className = "live"
         golive1.setAttribute("data-action", "stop")
@@ -425,7 +424,7 @@ const setupButtonBroadcast = () => {
         startButton.setAttribute("data-action", "stop")
         startButton.innerHTML = "Stop Stream"
     }
-    if (!goliveButtons_1_Live && !goliveButtons_2_live && !startStreambuttons_live){
+    if (!goliveButtons_1_Live && !goliveButtons_2_live && !startStreambuttons_live) {
         golive2.className = "disabled"
         startButton.className = "disabled"
         golive1.className = ""
@@ -444,7 +443,7 @@ const sleep = async (ms) => {
 
 const messageTextArea = document.querySelector("textarea");
 
-document.querySelector("#message_livestream_broadcast").addEventListener("click",async () => {
+document.querySelector("#message_livestream_broadcast").addEventListener("click", async () => {
     if (messageTextArea.value === "") return;
 
     console.log("message:", messageTextArea.value)
@@ -483,16 +482,16 @@ async function downloadQR(tournament_id) {
 
 const archivedButton = document.querySelector("#archive")
 if (informationHeader.attributes["data-state"].value == "init") {
-    archivedButton.addEventListener("click",async () => {
+    archivedButton.addEventListener("click", async () => {
         console.log(tournament_id)
         const response = await fetch("/dashboard/tournament/archive", {
             method: "POST",
-            headers: {"Content-type": "application/json"},
+            headers: { "Content-type": "application/json" },
             body: JSON.stringify({
                 id: tournament_id
             })
         });
-    
+
         switch (response.status) {
             case 500:
                 alert("Archiving this tournament failed, server response: 500");

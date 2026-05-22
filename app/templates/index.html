@@ -45,28 +45,38 @@
 </head>
 
 <body>
-
     <!-- ========================= -->
     <!-- NAVBAR -->
     <!-- ========================= -->
-    <nav class="navbar">
+    <nav class="navbar" id="navbar">
         <img src="/static/logo-white.png" alt="TrueVAR">
+
         <ul class="nav-links">
             <li><a href="#services">Services</a></li>
             <li><a href="#events">Work</a></li>
             <li><a href="#community">Community</a></li>
         </ul>
-        <div class="nav-action">
-            <a href="#request" class="btn-contact">Request</a>
+
+        <div class="nav-action" style="display:flex;align-items:center;gap:16px;">
+            <a href="#request" class="nav-request btn-contact">Request</a>
+            <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
         </div>
     </nav>
 
+    <!-- Mobile drawer -->
+    <div class="nav-mobile-drawer" id="mobileDrawer">
+        <a href="#services" onclick="closeDrawer()">SERVICES</a>
+        <a href="#events" onclick="closeDrawer()">WORK</a>
+        <a href="#community" onclick="closeDrawer()">COMMUNITY</a>
+        <a href="#request" class="btn-contact" onclick="closeDrawer()">REQUEST</a>
+    </div>
+
     <!-- ========================= -->
-    <!-- HERO (REDESIGNED) -->
+    <!-- HERO -->
     <!-- ========================= -->
     <section class="hero">
-
-        <!-- Scrolling background marquee -->
         <div class="bg-container">
             <div class="row move-left">
                 <span>INSTANT VIDEO REPLAY&nbsp;&nbsp;&nbsp;INSTANT VIDEO REPLAY&nbsp;&nbsp;&nbsp;INSTANT VIDEO
@@ -90,33 +100,26 @@
             </div>
         </div>
 
-        <!-- Gradient overlay so content is readable -->
         <div class="hero-overlay"></div>
 
-        <!-- Main hero content -->
         <div class="hero-content">
-
             <h1 class="hero-title">
                 WE MAKE<br>
                 TAEKWONDO<br>
                 <em>UNMISSABLE.</em>
             </h1>
-
             <div class="hero-bottom">
                 <p class="hero-sub">
                     Instant Video Replay · Poomsae System Provider ·<br>
                     Multi-court Livestreams. All under one roof.
                 </p>
-
                 <div class="hero-actions">
                     <a href="#request" class="btn-hero-primary">REQUEST A TOURNAMENT</a>
                     <a href="#events" class="btn-hero-secondary">SEE OUR WORK ↓</a>
                 </div>
             </div>
-
         </div>
 
-        <!-- Stats strip at bottom of hero -->
         <div class="hero-stats">
             <div class="hero-stat">
                 <strong>1 000+</strong>
@@ -138,35 +141,30 @@
                 <span>Missed replays</span>
             </div>
         </div>
-
     </section>
 
     <!-- ========================= -->
-    <!-- SERVICES (UNCHANGED) -->
+    <!-- SERVICES -->
     <!-- ========================= -->
     <section class="services" id="services">
         <h2 class="services-title">SERVICES</h2>
-
         <div class="services-grid">
             <div class="box box-large">
                 <h3>INSTANT<br>VIDEO REPLAY</h3>
                 <p>Multi-court IVR supporting various scoring systems. Simple system you can master in no time.</p>
             </div>
-
             <div class="box box-tall">
                 <a href="https://fitofan.com/u364231239" target="_blank">
                     <h3>POOMSAE<br>SYSTEM PROVIDER</h3>
                     <p>Smooth running of all poomsae disciplines with technical support on the spot.</p>
                 </a>
             </div>
-
             <div class="box box-mini">
                 <a href="#events">
                     <h3>POOMSAE<br>LIVESTREAM</h3>
-                    <p>Proffesional livestream constantly evolving.</p>
+                    <p>Professional livestream constantly evolving.</p>
                 </a>
             </div>
-
             <div class="box box-wide">
                 <a href="#events">
                     <h3>KYORUGI<br>LIVESTREAM</h3>
@@ -177,10 +175,9 @@
     </section>
 
     <!-- ========================= -->
-    <!-- TOURNAMENTS (UNCHANGED) -->
+    <!-- TOURNAMENTS -->
     <!-- ========================= -->
     <section class="events-showcase" id="events">
-
         <div class="section-top">
             <p class="section-kicker">LIVE OPERATIONS</p>
             <h2 class="showcase-title">TOURNAMENTS</h2>
@@ -188,132 +185,76 @@
 
         <!-- UPCOMING -->
         <div class="event-state upcoming-state">
-            <div class="state-label">
-                <span></span>
-                UPCOMING EVENT
-            </div>
-
+            <div class="state-label"><span></span>UPCOMING EVENT</div>
             <div class="event-grid">
                 <div class="event-main">
                     <p class="event-category">INTERNATIONAL EVENT</p>
                     <h3>BRATISLAVA OPEN<br>KYORUGI & POOMSAE</h3>
                     <div class="event-meta">
-                        <div>
-                            <span>DATE</span>
-                            <strong>6. JUNE</strong>
-                        </div>
-                        <div>
-                            <span>EXPECTED ATHLETES</span>
-                            <strong>500+</strong>
-                        </div>
-                        <div>
-                            <span>LOCATION</span>
-                            <strong>BRATISLAVA, SK</strong>
-                        </div>
+                        <div><span>DATE</span><strong>6. JUNE</strong></div>
+                        <div><span>EXPECTED ATHLETES</span><strong>500+</strong></div>
+                        <div><span>LOCATION</span><strong>BRATISLAVA, SK</strong></div>
                     </div>
                 </div>
-
                 <div class="countdown-box">
                     <p>NEXT EVENT STARTS IN</p>
                     <div class="countdown">
-                        <div>
-                            <strong id="days">--</strong>
-                            <span>DAYS</span>
-                        </div>
-                        <div>
-                            <strong id="hours">--</strong>
-                            <span>HOURS</span>
-                        </div>
-                        <div>
-                            <strong id="mins">--</strong>
-                            <span>MIN</span>
-                        </div>
+                        <div><strong id="days">--</strong><span>DAYS</span></div>
+                        <div><strong id="hours">--</strong><span>HOURS</span></div>
+                        <div><strong id="mins">--</strong><span>MIN</span></div>
                     </div>
-                    <a href="https://www.youtube.com/@TrueVAR" target="_blank" class="event-btn">
-                        WATCH ON YOUTUBE
-                    </a>
+                    <a href="https://www.youtube.com/@TrueVAR" target="_blank" class="event-btn">WATCH ON YOUTUBE</a>
                 </div>
             </div>
         </div>
 
         <!-- ARCHIVE -->
         <div class="event-state archive-state">
-            <div class="state-label">
-                <span></span>
-                ARCHIVE
-            </div>
-
+            <div class="state-label"><span></span>ARCHIVE</div>
             <div class="archive-layout">
                 <div class="archive-intro">
                     <p class="event-category">PREVIOUS PRODUCTIONS</p>
                     <h3>EVENTS WE<br>POWERED</h3>
                     <p class="archive-desc">
-                        Autonomous livestream production, instant replay systems,
-                        multi-court broadcasting and judging infrastructure of
-                        Slovak tournaments with <b>international reach</b>.
+                        Autonomous livestream production, instant replay systems, multi-court broadcasting and judging
+                        infrastructure of Slovak tournaments with <b>international reach</b>.
                     </p>
                 </div>
-
                 <div class="archive-grid">
                     <a href="https://www.youtube.com/watch?v=RNITwF_i8jY&list=PLujJS4W9cCChOnfp4vFrqe4OxI9mVsEKd"
                         target="_blank" class="archive-card">
-                        <div class="archive-top">
-                            <span>POOMSAE</span>
-                            <span>2026</span>
-                        </div>
+                        <div class="archive-top"><span>POOMSAE</span><span>2026</span></div>
                         <h4>CASSOVIA<br>OPEN 2026</h4>
                         <p>First Slovak poomsae livestream ever done.</p>
-                        <div class="archive-bottom">
-                            <strong>250+ ATHLETES</strong>
-                            <span>WATCH REPLAY →</span>
-                        </div>
+                        <div class="archive-bottom"><strong>250+ ATHLETES</strong><span>WATCH REPLAY →</span></div>
                     </a>
-
                     <a href="https://www.youtube.com/@TrueVAR" target="_blank" class="archive-card featured">
-                        <div class="archive-top">
-                            <span>KYORUGI</span>
-                            <span>2025</span>
-                        </div>
+                        <div class="archive-top"><span>KYORUGI</span><span>2025</span></div>
                         <h4>BRATISLAVA<br>OPEN 2025</h4>
                         <p>Biggest Slovak tournament of the year, executed flawlessly with professional IVR.</p>
-                        <div class="archive-bottom">
-                            <strong>450+ ATHLETES</strong>
-                            <span>WATCH REPLAY →</span>
-                        </div>
+                        <div class="archive-bottom"><strong>450+ ATHLETES</strong><span>WATCH REPLAY →</span></div>
                     </a>
-
                     <a href="https://www.youtube.com/watch?v=Z2DJQmPffYQ&list=PLujJS4W9cCCil0TyxDk7yUmfvsJdoR9su&index=1"
                         target="_blank" class="archive-card">
-                        <div class="archive-top">
-                            <span>MULTI DAY</span>
-                            <span>2025</span>
-                        </div>
+                        <div class="archive-top"><span>MULTI DAY</span><span>2025</span></div>
                         <h4>ILYO CUP<br>2025</h4>
                         <p>Flawless multi-day livestream of Slovak Extraleague tournament.</p>
-                        <div class="archive-bottom">
-                            <strong>350+ ATHLETES</strong>
-                            <span>WATCH REPLAY →</span>
-                        </div>
+                        <div class="archive-bottom"><strong>350+ ATHLETES</strong><span>WATCH REPLAY →</span></div>
                     </a>
                 </div>
             </div>
         </div>
-
     </section>
 
     <!-- ========================= -->
-    <!-- COMMUNITY SECTION (NEW) -->
+    <!-- COMMUNITY -->
     <!-- ========================= -->
     <section class="community" id="community">
-
         <div class="community-header">
             <p class="section-kicker">STAY CONNECTED</p>
             <h2 class="community-title">JOIN THE<br>COMMUNITY</h2>
         </div>
-
         <div class="community-grid">
-
-            <!-- WhatsApp hero card -->
             <div class="whatsapp-card">
                 <div class="wa-inner">
                     <div class="wa-top">
@@ -324,31 +265,15 @@
                             </svg>
                         </div>
                         <h3>WHATSAPP COMMUNITY</h3>
-                        <!-- <span class="wa-badge">FREE TO JOIN</span> -->
                     </div>
-
-
-
-                    <p class="wa-desc">
-                        Get real-time updates on every tournament we cover. Our community includes dedicated group chats
-                        for each event — schedules, updates, draws, and live links all in one place.
-                    </p>
-
+                    <p class="wa-desc">Get real-time updates on every tournament we cover. Our community includes
+                        dedicated group chats for each event — schedules, updates, draws, and live links all in one
+                        place.</p>
                     <ul class="wa-features">
-                        <li>
-                            <span class="check">✓</span>
-                            Live stream links as soon as we go live
-                        </li>
-                        <li>
-                            <span class="check">✓</span>
-                            Per-tournament group chats
-                        </li>
-                        <li>
-                            <span class="check">✓</span>
-                            Schedule & draw announcements
-                        </li>
+                        <li><span class="check">✓</span>Live stream links as soon as we go live</li>
+                        <li><span class="check">✓</span>Per-tournament group chats</li>
+                        <li><span class="check">✓</span>Schedule & draw announcements</li>
                     </ul>
-
                     <a href="https://chat.whatsapp.com/HOgrOglndIIGbDjapDCjrG" target="_blank" class="btn-whatsapp">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18"
                             height="18">
@@ -360,13 +285,9 @@
                 </div>
             </div>
 
-            <!-- Socials side -->
             <div class="socials-side">
-
                 <p class="socials-label">FOLLOW OUR CHANNELS</p>
-
                 <div class="social-links">
-
                     <a href="https://www.youtube.com/@TrueVAR" target="_blank" class="social-link youtube">
                         <div class="social-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -374,13 +295,10 @@
                                     d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                             </svg>
                         </div>
-                        <div class="social-info">
-                            <strong>YouTube</strong>
-                            <span>@TrueVAR — All replays & streams</span>
+                        <div class="social-info"><strong>YouTube</strong><span>@TrueVAR — All replays & streams</span>
                         </div>
                         <span class="social-arrow">→</span>
                     </a>
-
                     <a href="https://www.instagram.com/truevar_official/" target="_blank" class="social-link instagram">
                         <div class="social-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -388,68 +306,32 @@
                                     d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
                             </svg>
                         </div>
-                        <div class="social-info">
-                            <strong>Instagram</strong>
-                            <span>More updates on taekwondo events</span>
+                        <div class="social-info"><strong>Instagram</strong><span>More updates on taekwondo events</span>
                         </div>
                         <span class="social-arrow">→</span>
                     </a>
-
-                    <!-- <a href="https://www.tiktok.com/@YOUR_HANDLE" target="_blank" class="social-link tiktok">
-                        <div class="social-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                <path
-                                    d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.98a8.27 8.27 0 004.83 1.55V7.06a4.85 4.85 0 01-1.06-.37z" />
-                            </svg>
-                        </div>
-                        <div class="social-info">
-                            <strong>TikTok</strong>
-                            <span>Highlights & tournament clips</span>
-                        </div>
-                        <span class="social-arrow">→</span>
-                    </a> -->
-
                 </div>
-
-                <!-- Quick stats -->
                 <div class="social-stats">
-                    <div class="social-stat">
-                        <strong>LIVE</strong>
-                        <span>Streams on YouTube</span>
-                    </div>
-                    <div class="social-stat">
-                        <strong>FREE</strong>
-                        <span>All replays public</span>
-                    </div>
-                    <div class="social-stat">
-                        <strong>24/7</strong>
-                        <span>Community active</span>
-                    </div>
+                    <div class="social-stat"><strong>LIVE</strong><span>Streams on YouTube</span></div>
+                    <div class="social-stat"><strong>FREE</strong><span>All replays public</span></div>
+                    <div class="social-stat"><strong>24/7</strong><span>Community active</span></div>
                 </div>
-
             </div>
-
         </div>
-
     </section>
 
     <!-- ========================= -->
-    <!-- REQUEST FORM (NEW) -->
+    <!-- REQUEST FORM -->
     <!-- ========================= -->
     <section class="request-section" id="request">
-
         <div class="request-inner">
-
             <div class="request-left">
                 <p class="section-kicker">WORK WITH US</p>
                 <h2 class="request-title">REQUEST<br>A TOURNAMENT</h2>
-                <p class="request-desc">
-                    Fill in the details and we'll get back to you within 48 hours with a tailored production plan for
-                    your event.
-                </p>
-
+                <p class="request-desc">Fill in the details and we'll get back to you within 48 hours with a tailored
+                    production plan for your event.</p>
                 <div class="request-contact-list">
-                    <a href="https://chat.whatsapp.com/YOUR_LINK_HERE" target="_blank" class="request-contact-item">
+                    <a href="https://wa.me/message/K6JLVH2NTIJJK1" target="_blank" class="request-contact-item">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16"
                             height="16">
                             <path
@@ -470,7 +352,6 @@
 
             <div class="request-right">
                 <div class="form-wrap" id="requestForm">
-
                     <div class="form-row">
                         <div class="form-group">
                             <label>ORGANIZER / CLUB NAME</label>
@@ -481,7 +362,6 @@
                             <input type="email" placeholder="you@example.com">
                         </div>
                     </div>
-
                     <div class="form-row">
                         <div class="form-group">
                             <label>TOURNAMENT NAME</label>
@@ -492,33 +372,22 @@
                             <input type="text" placeholder="e.g. September 14-15, 2026">
                         </div>
                     </div>
-
                     <div class="form-row">
                         <div class="form-group">
                             <label>LOCATION / VENUE</label>
                             <input type="text" placeholder="City, Country">
                         </div>
                     </div>
-
-                    <div class="form-group full">
+                    <div class="form-group">
                         <label>SERVICES NEEDED</label>
                         <div class="checkbox-grid">
-                            <label class="checkbox-item">
-                                <input type="checkbox"> Instant Video Replay (IVR)
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox"> Kyorugi Livestream
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox"> Poomsae System Provider
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox"> Poomsae Livestream
-                            </label>
+                            <label class="checkbox-item"><input type="checkbox"> Instant Video Replay (IVR)</label>
+                            <label class="checkbox-item"><input type="checkbox"> Kyorugi Livestream</label>
+                            <label class="checkbox-item"><input type="checkbox"> Poomsae System Provider</label>
+                            <label class="checkbox-item"><input type="checkbox"> Poomsae Livestream</label>
                         </div>
                     </div>
-
-                    <div class="form-group full">
+                    <div class="form-group">
                         <label>NUMBER OF COURTS</label>
                         <div class="courts-selector">
                             <button class="court-btn active" data-val="1">1</button>
@@ -529,28 +398,18 @@
                             <button class="court-btn" data-val="6">6+</button>
                         </div>
                     </div>
-
-                    <div class="form-group full">
+                    <div class="form-group">
                         <label>ADDITIONAL NOTES</label>
                         <textarea
                             placeholder="Tell us anything else — venue specifics, special requirements, budget range..."></textarea>
                     </div>
-
-                    <button class="btn-submit" onclick="handleSubmit()">
-                        SEND REQUEST
-                        <span>→</span>
-                    </button>
-
+                    <button class="btn-submit" onclick="handleSubmit()">SEND REQUEST <span>→</span></button>
                     <div class="form-success" id="formSuccess">
-                        <span>✓</span>
-                        REQUEST SENT — WE'LL BE IN TOUCH WITHIN 48 HOURS.
+                        <span>✓</span> REQUEST SENT — WE'LL BE IN TOUCH WITHIN 48 HOURS.
                     </div>
-
                 </div>
             </div>
-
         </div>
-
     </section>
 
     <!-- ========================= -->
@@ -559,7 +418,7 @@
     <footer class="footer">
         <div class="footer-inner">
             <div class="footer-brand">
-                <img src="logo-white.png" alt="TrueVAR" style="height:24px; opacity:0.8;">
+                <img src="logo-white.png" alt="TrueVAR" style="height:24px;opacity:0.8;">
                 <p>Powering Taekwondo broadcasts across Slovakia and beyond.</p>
             </div>
             <div class="footer-links">
@@ -583,24 +442,34 @@
                             d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
                     </svg>
                 </a>
-                <a href="https://chat.whatsapp.com/YOUR_LINK_HERE" target="_blank" aria-label="WhatsApp">
+                <a href="https://wa.me/message/K6JLVH2NTIJJK1" target="_blank" aria-label="WhatsApp">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20"
                         height="20">
                         <path
                             d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                     </svg>
                 </a>
+                <a href="https://fitofan.com/u364231239?p=events" target="_blank" aria-label="Fitofan">
+                    <svg width="20" height="20" viewBox="0 0 165 188" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M120.858 109.84H120.904V101.439H120.858V99.8376C120.858 96.2393 117.93 93.3119 114.364 93.3119H75.2925C71.7419 93.3119 68.8437 90.3997 68.8437 86.8319V73.689C68.8437 70.1212 71.7419 67.209 75.2925 67.209H114.516C118.021 67.209 120.889 64.3273 120.889 60.8052V60.6833H120.919V47.5403C120.919 47.3879 120.889 47.2506 120.843 47.1439C120.509 44.1402 118.082 41.7465 115.062 41.4873H115.032C114.865 41.4873 114.698 41.472 114.531 41.472H49.6493C46.1442 41.472 43.2916 44.3537 43.2916 47.8758V48.9735H43.2612V139.465C43.2612 143.032 40.3631 145.945 36.8125 145.945H23.7481C20.1975 145.945 17.2994 143.032 17.2994 139.465V21.8491C17.2994 18.2813 20.1975 15.3691 23.7481 15.3691H36.8125C36.9491 15.3691 37.0856 15.3691 37.2222 15.3691H141.13C144.681 15.3691 147.579 18.2813 147.579 21.8491V34.992C147.579 65.1811 147.685 95.7056 147.685 126.017V139.16C147.685 142.727 144.787 145.64 141.236 145.64H116.352C110.1 145.838 103.409 144.816 99.0086 148.445C92.8027 153.553 82.3633 164.851 75.0193 171.194C71.8177 173.969 68.9348 172.901 68.9348 164.759C68.9348 156.617 69.1927 147.21 69.1927 139.144V126.001C69.1927 122.784 71.5598 120.086 74.64 119.598H114.395C117.975 119.598 120.889 116.655 120.889 113.072V109.84H120.858Z"
+                            fill="currentColor" />
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M19.9547 7.2576C25.3565 6.22081 123.059 6.98316 137.489 6.96791C145.151 6.96791 148.065 6.73921 152.844 11.1761C157.214 15.247 157.442 18.3879 157.427 25.6455C157.381 51.2452 157.427 76.8602 157.427 102.46C157.427 114.2 158.352 129.905 157.366 141.157C156.88 146.676 153.315 150.778 149.4 152.79C144.529 155.276 137.822 154.437 131.981 154.437C99.57 154.437 106.246 154.254 79.3893 180.006C72.6219 186.486 78.3575 188.209 80.2542 187.98C82.2419 187.736 90.4963 178.832 93.1365 176.255C101.558 168.037 106.246 161.435 117.126 161.405C127.58 161.374 145.758 163.189 153.633 158.523C163.572 152.638 164.695 145.441 164.695 130.926C164.695 105.494 164.695 80.0773 164.695 54.6606C164.695 46.0003 165.726 23.3127 163.997 16.3906C161.66 7.10513 153.497 0.0305206 141.904 2.65995e-05H23.657C11.7155 -0.0152204 3.55217 6.52575 1.00302 15.8722C-0.696412 22.1234 0.274691 45.3599 0.289865 53.578L0.153303 130.392C0.153303 137.299 -0.286728 141.416 2.64176 147.149C8.71115 159.026 19.7726 158.721 29.7113 158.721C32.1087 158.721 37.4649 159.011 39.5133 158.676C42.2749 158.234 43.8074 154.788 41.5314 152.699C36.9794 148.491 18.5436 157.273 9.90986 145.426C5.37299 139.19 7.30002 118.637 7.30002 109.428L7.43658 33.1623C7.43658 23.4804 5.06951 10.124 19.9395 7.2576"
+                            fill="currentColor" />
+                    </svg>
+                </a>
             </div>
         </div>
         <div class="footer-bottom">
-            <span>© 2026 TrueVAR s. r. o. All rights reserved. Designed by Samuel Chudý</span>
+            <span>© 2026 TrueVAR s. r. o. All rights reserved.</span>
         </div>
     </footer>
 
     <script>
-        // Live countdown to June 12, 2026
+        // Countdown
         function updateCountdown() {
-            const target = new Date('2026-06-12T08:00:00');
+            const target = new Date('2026-06-06T09:00:00');
             const now = new Date();
             const diff = target - now;
             if (diff <= 0) {
@@ -609,12 +478,9 @@
                 document.getElementById('mins').textContent = '00';
                 return;
             }
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            document.getElementById('days').textContent = String(days).padStart(2, '0');
-            document.getElementById('hours').textContent = String(hours).padStart(2, '0');
-            document.getElementById('mins').textContent = String(mins).padStart(2, '0');
+            document.getElementById('days').textContent = String(Math.floor(diff / 86400000)).padStart(2, '0');
+            document.getElementById('hours').textContent = String(Math.floor((diff % 86400000) / 3600000)).padStart(2, '0');
+            document.getElementById('mins').textContent = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
         }
         updateCountdown();
         setInterval(updateCountdown, 60000);
@@ -629,18 +495,36 @@
 
         // Form submit
         function handleSubmit() {
-            const success = document.getElementById('formSuccess');
-            success.classList.add('visible');
-            setTimeout(() => success.classList.remove('visible'), 5000);
+            document.getElementById('formSuccess').classList.add('visible');
+            setTimeout(() => document.getElementById('formSuccess').classList.remove('visible'), 5000);
         }
 
-        // Navbar scroll effect
+        // Navbar scroll
         window.addEventListener('scroll', () => {
-            const nav = document.querySelector('.navbar');
-            nav.classList.toggle('scrolled', window.scrollY > 60);
+            document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 60);
+        });
+
+        // Mobile hamburger
+        const hamburger = document.getElementById('hamburger');
+        const drawer = document.getElementById('mobileDrawer');
+
+        hamburger.addEventListener('click', () => {
+            const open = drawer.classList.toggle('open');
+            hamburger.classList.toggle('open', open);
+            document.body.style.overflow = open ? 'hidden' : '';
+        });
+
+        function closeDrawer() {
+            drawer.classList.remove('open');
+            hamburger.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        // Close drawer on outside click
+        drawer.addEventListener('click', (e) => {
+            if (e.target === drawer) closeDrawer();
         });
     </script>
-
 </body>
 
 </html>

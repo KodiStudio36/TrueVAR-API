@@ -13,28 +13,31 @@ def get_youtube_service():
     creds = None
 
     # Load saved credentials if they exist
-    if os.path.exists("token.pickle"):
-        with open("token.pickle", "rb") as token:
-            creds = pickle.load(token)
+    try:
+        print("yes")
+        if os.path.exists("token.pickle"):
+            with open("token.pickle", "rb") as token:
+                creds = pickle.load(token)
 
-    # If there are no valid credentials, log in
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            # This opens browser for OAuth login
-            flow = InstalledAppFlow.from_client_secrets_file("client_secret.json", SCOPES)
+        # If there are no valid credentials, log in
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                print("ere")
+                creds.refresh(Request())
 
-            flow.redirect_uri = "http://localhost:5000/oauth2callback"
-            creds = flow.run_local_server(
-                host="localhost",
-                port=3500,
-                redirect_uri_trailing_slash=False,
-                success_message="Auth complete. You can close this tab.",
-            )
+    except:
+        flow = InstalledAppFlow.from_client_secrets_file("client_secret.json", SCOPES)
 
-            with open("token.pickle", "wb") as f:
-                pickle.dump(creds, f)
+        flow.redirect_uri = "http://localhost:5000/oauth2callback"
+        creds = flow.run_local_server(
+            host="localhost",
+            port=3500,
+            redirect_uri_trailing_slash=False,
+            success_message="Auth complete. You can close this tab.",
+        )
+
+        with open("token.pickle", "wb") as f:
+            pickle.dump(creds, f)
 
     # Return authenticated YouTube API client
     return build("youtube", "v3", credentials=creds)

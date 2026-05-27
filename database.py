@@ -605,7 +605,7 @@ def clearDeviceCourtTournamentIdSidState(machine_id: str):
 def getDevicesByTournamentId(tournament_id: int):
     try:
         with SessionLocal() as session:
-            query = select(Devices).where(Devices.tournament_id == tournament_id)
+            query = select(Devices).where(Devices.tournament_id == tournament_id).order_by(Devices.court)
             result = session.scalars(query).all()
             return result
     except SQLAlchemyError:

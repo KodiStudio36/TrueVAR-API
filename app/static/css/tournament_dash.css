@@ -103,7 +103,6 @@ h1 {
 .actionButtons .active {
     background-color: #2f7cf6 !important;
 }
-.actionButtons button.startStreamBtn.disabled,
 .actionButtons button.goLiveButton2.disabled,
 button#schedule.disabled,
 #startButton.disabled,

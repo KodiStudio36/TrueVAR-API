@@ -12,12 +12,12 @@
     {% if tournament == 0 %}
     <h1 style="text-align: center;">This tournament doesn't exist</h1>
     {% else %}
-    <h6 id="id" data-id="{{ tournament.id }}" data-state="{{ tournament['tournament_state'] }}">id: {{ tournament.id }}</h6>
+    <h6 id="id" data-id="{{ tournament.id }}" data-state="{{ tournament['tournament_state'] }}" data-video-ids="{{ tournament['video_ids'] }}">id: {{ tournament.id }}</h6>
     <h1>{{ tournament.name }}</h1>
     <div class="golive-buttons">
         <button id="golive1" data-action="start">Go Live</button>
         <button id="golive2" data-action="start">Go Live</button>
-        <button id="startButton" data-action="start">Start stream</button>
+        <button id="startButton" data-action="start" data-video-ids="{{ tournament['video_ids'] }}">Start stream</button>
         <!-- GO LIVE BUTTONS HERE -->
     </div>
     <h2>Devices</h2>
@@ -40,7 +40,7 @@
                 <td class="actionButtons">
                     <button data-machine-id="{{ row['machine_id'] }}" class="goLiveButton1" data-action="start">Go Live</button>
                     <button data-machine-id="{{ row['machine_id'] }}" class="goLiveButton2" data-action="start">Go Live</button>
-                    <button data-machine-id="{{ row['machine_id'] }}" class="startStreamBtn" data-action="start">Start</button>
+                    <button data-machine-id="{{ row['machine_id'] }}" class="startStreamBtn" data-action="start" data-court="{{ row['court'] }}">Start</button>
                 </td>
             </tr>
             {% endfor %}

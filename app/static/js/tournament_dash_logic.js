@@ -14,6 +14,7 @@ const scheduled = courtElement.attributes["data-scheduled"].value
 const informationHeader = document.querySelector("h6")
 const tournament_id = informationHeader.attributes["data-id"].value
 const tournament_state = informationHeader.attributes["data-state"].value
+const videoids = informationHeader.attributes["data-video-ids"].value.split(" ")
 var UPDATING = false
 
 if (scheduled != "False") {
@@ -205,33 +206,40 @@ document.addEventListener("DOMContentLoaded", () => {
             setupButtonBroadcast()
         });
     });
+    let n = -1;
     Array.from(startStreamBtns).forEach(button => {
         button.addEventListener("click", async () => {
-            if (button.classList.contains("disabled")) return
-            let machine_id = button.attributes["data-machine-id"].value
-            let action = button.attributes["data-action"].value
-
-            animate(button, "load")
-            await fetch("/api/dashboard/tournament", {
-                method: "POST",
-                headers: { "Content-type": "application/json" },
-                body: JSON.stringify({
-                    machine_id: machine_id,
-                    action: action,
-                    send_mode: "unicast"
-                })
-            });
-
-            if (action == "start") {
-                button.setAttribute("data-action", "stop")
-                button.classList.replace("active", "live")
-                animate(button, "done", "Stop stream")
-            } else {
-                button.setAttribute("data-action", "start")
-                button.classList.replace("live", "active")
-                animate(button, "done", "Start stream")
+            let court = Number(button.attributes["data-court"].value)
+            if (isNaN(court)) {
+                alert("Error, this device's court is Not A Number")
+                return
             }
-            setupButtonBroadcast()
+            window.open(`https://studio.youtube.com/video/${videoids[court - 1]}/livestreaming`, "_blank")
+            // if (button.classList.contains("disabled")) return
+            // let machine_id = button.attributes["data-machine-id"].value
+            // let action = button.attributes["data-action"].value
+
+            // animate(button, "load")
+            // await fetch("/api/dashboard/tournament", {
+            //     method: "POST",
+            //     headers: { "Content-type": "application/json" },
+            //     body: JSON.stringify({
+            //         machine_id: machine_id,
+            //         action: action,
+            //         send_mode: "unicast"
+            //     })
+            // });
+
+            // if (action == "start") {
+            //     button.setAttribute("data-action", "stop")
+            //     button.classList.replace("active", "live")
+            //     animate(button, "done", "Stop stream")
+            // } else {
+            //     button.setAttribute("data-action", "start")
+            //     button.classList.replace("live", "active")
+            //     animate(button, "done", "Start stream")
+            // }
+            // setupButtonBroadcast()
         });
     });
 });
@@ -265,23 +273,24 @@ golive2.addEventListener("click", async () => {
     });
     window.location.reload()
 });
-startButton.addEventListener("click", () => {
-    startButton.addEventListener("click", async () => {
-        if (startButton.classList.contains("disabled")) return
+startButton.addEventListener("click",async () => {
+    // if (startButton.classList.contains("disabled")) return
 
-        let action = startButton.attributes["data-action"].value
 
-        animate(startButton, "load")
-        await fetch("/api/dashboard/tournament", {
-            method: "POST",
-            headers: { "Content-type": "application/json" },
-            body: JSON.stringify({
-                action: action,
-                send_mode: "broadcast"
-            })
-        });
-        window.location.reload()
-    });
+
+    // open windows
+
+    // let action = startButton.attributes["data-action"].value
+    // animate(startButton, "load")
+    // await fetch("/api/dashboard/tournament", {
+    //     method: "POST",
+    //     headers: { "Content-type": "application/json" },
+    //     body: JSON.stringify({
+    //         action: action,
+    //         send_mode: "broadcast"
+    //     })
+    // });
+    // window.location.reload()
 });
 
 const animate = (element, action, newInnerHTML = null) => {
@@ -360,6 +369,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         setupButtonUnicast(machine_id, device_state)
     });
     setupButtonBroadcast();
+
+    // video is sa asignuje na vsetky golive start stream buttons
+    for (let i = 0; i < videoids.length; i++) {
+        if (startStream_deviceButtons[i] == undefined) return
+        startStream_deviceButtons[i].setAttribute("data-video-id", videoids[i])
+    }
 });
 
 const setupButtonBroadcast = () => {

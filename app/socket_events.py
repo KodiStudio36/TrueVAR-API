@@ -3,7 +3,7 @@ from flask import json, request
 from flask_socketio import disconnect, emit, join_room
 from app.extensions import app_socketio
 from app.socket_token import verify_socket_token
-from database import InsertNewFight, UpdateFight, assignDeviceFightId, assignDeviceSid, getAllTournamentsNames, getMachineIdBySid, getTournamentByName, checkDeviceAssignedTournament, getTournamentById, assignDeviceToTournament, Tournaments, getTournamentIdByLicenseKey, getFightById, getCurrentFightByLicenseKey, getDeviceByLicenseKey, getFightByTournamentIdAndId, getStreamKeyByTournamentIdAnCourt, setMachineStatus
+from database import InsertNewFight, UpdateFight, assignDeviceFightId, assignDeviceSid, clearDeviceCourtTournamentIdSidState, getAllTournamentsNames, getMachineIdBySid, getTournamentByName, checkDeviceAssignedTournament, getTournamentById, assignDeviceToTournament, Tournaments, getTournamentIdByLicenseKey, getFightById, getCurrentFightByLicenseKey, getDeviceByLicenseKey, getFightByTournamentIdAndId, getStreamKeyByTournamentIdAnCourt, setMachineStatus
 from database import getTournamentsByDate
 import datetime
 
@@ -50,6 +50,9 @@ def on_connect(auth=None):
     # At this point the socket is authenticated
     license_key = payload["license_key"]
     machine_id = payload["machine_id"]
+
+    # clearing device connection if there is any
+    clearDeviceCourtTournamentIdSidState(machine_id)
 
     tournament_id = checkDeviceAssignedTournament(license_key=license_key)
     print(tournament_id)

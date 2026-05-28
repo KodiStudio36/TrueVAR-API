@@ -4,6 +4,8 @@ from flask_socketio import disconnect, emit, join_room
 from app.extensions import app_socketio
 from app.socket_token import verify_socket_token
 from database import InsertNewFight, UpdateFight, assignDeviceFightId, assignDeviceSid, getAllTournamentsNames, getMachineIdBySid, getTournamentByName, checkDeviceAssignedTournament, getTournamentById, assignDeviceToTournament, Tournaments, getTournamentIdByLicenseKey, getFightById, getCurrentFightByLicenseKey, getDeviceByLicenseKey, getFightByTournamentIdAndId, getStreamKeyByTournamentIdAnCourt, setMachineStatus
+from database import getTournamentsByDate
+import datetime
 
 SOCKET_TOKEN_TTL_SECONDS = 300
 
@@ -63,14 +65,13 @@ def on_connect(auth=None):
 
     # Optional: group sockets by license key
     # join_room(f"lic:{license_key}")
-
-    all_tournaments = getAllTournamentsNames()
-    print(all_tournaments)
-    print("Success conn")
+    today = datetime.date.today()   
+    tournaments = getTournamentsByDate(today)
+    print("NEW DEVICE CONNECTION")
     emit("tournaments_list", {
         "message" : "ok",
         "license_key": license_key,
-        "tournaments": [x.to_dict() for x in all_tournaments]
+        "tournaments": [x.to_dict() for x in tournaments]
         })
 
 @app_socketio.on("select_tournament")

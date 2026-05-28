@@ -7,7 +7,7 @@ from enum import IntEnum
 import sqlalchemy as db
 import secrets
 import datetime
-
+from datetime import date
 
 ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 GROUPS = 4
@@ -329,6 +329,15 @@ def getTournamentById(id: str):
     except SQLAlchemyError:
         raise RuntimeError("Error getting tournament data")
     
+def getTournamentsByDate(date_value: date):
+    try:
+        with SessionLocal() as session:
+            query = select(Tournaments).where(Tournaments.startDate == date_value)
+            result = session.scalars(query).all()
+            return result
+    except SQLAlchemyError:
+        raise RuntimeError("Error getting tournament by date")
+    
 def setupMachineId(machine_id: str, license_key: str, device: Devices):
     with SessionLocal() as session:
         query = update(Devices).where(Devices.license_key == license_key).values(machine_id=machine_id)
@@ -567,6 +576,15 @@ def getDevice_CourtByMachineIdandTournamentId(machine_id: str, tournament_id: in
     try:
         with SessionLocal() as session:
             query = select(Devices.court).where(Devices.machine_id == machine_id and Devices.tournament_id == tournament_id)
+            result = session.scalars(query).all()
+            return result
+    except SQLAlchemyError:
+        raise RuntimeError("Error")
+    
+def getMachineIdsByTournamentId(tournament_id: int):
+    try:
+        with SessionLocal() as session:
+            query = select(Devices.machine_id).where(Devices.tournament_id == tournament_id)
             result = session.scalars(query).all()
             return result
     except SQLAlchemyError:

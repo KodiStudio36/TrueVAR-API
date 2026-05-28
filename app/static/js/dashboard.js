@@ -82,4 +82,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         you_sureContainer.style.display = 'none'
     });
+    // arhivate buttons function NO AI USED HERE TRUSZT - sa kukni jak skaredo je to napisane urcite som to pisal #stayauthentic
+    Array.from(document.querySelectorAll(".archivate")).forEach((button) => {
+        button.addEventListener("click", async () => {
+            let id = button.attributes["data-id"]?.value
+            if (id == undefined) {
+                alert("Frontend error, button not working")
+                return;
+            }
+            const response = await fetch("/dashboard/tournament/archive", {
+                method: "POST",
+                headers: { "Content-type": "application/json" },
+                body: JSON.stringify({
+                    id: id
+                })
+            });
+            window.location.reload()
+        });
+    });
 });

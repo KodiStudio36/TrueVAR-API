@@ -3,7 +3,7 @@ from flask import Blueprint, request, render_template, session
 import pytz
 from werkzeug.security import check_password_hash
 from app.helper_functions import split_text_by_words
-from database import GetPasswordAndIdByEmail, changeTournamentStatus, getAllDisciplines, getDevicesByTournamentId, getPlaylistLinkByTournamenId, getTournamentsByStatus, tournamentCreate, getAllDevicesData, editDevicesTableDb, getTournamentById, editTournamentDb, getVideoIdsByTournamentId, deleteTournamentDb, getAllStreamKeys, getScheduledTimesByStreamKey, insertNewCourtSchedule, deleteCourtScheduleTimesByTournamentId, getStreamIdByStreamKey
+from database import GetPasswordAndIdByEmail, changeTournamentStatus, clearDeviceCourtTournamentIdSidState, getAllDisciplines, getDevicesByTournamentId, getMachineIdsByTournamentId, getPlaylistLinkByTournamenId, getTournamentsByStatus, tournamentCreate, getAllDevicesData, editDevicesTableDb, getTournamentById, editTournamentDb, getVideoIdsByTournamentId, deleteTournamentDb, getAllStreamKeys, getScheduledTimesByStreamKey, insertNewCourtSchedule, deleteCourtScheduleTimesByTournamentId, getStreamIdByStreamKey
 from youtube import build_broadcast_description, build_playlist_description, create_broadcast, create_playlist, delete_playlist, get_youtube_service, add_video_to_playlist, set_thumbnail, delete_broadcast, bind_broadcast_to_stream
 from .decorators import login_required
 from flask import send_file
@@ -202,7 +202,11 @@ def deleteTournament(id):
                 return {"message": "Server error"}, 500
         deleteCourtScheduleTimesByTournamentId(id)
     
-
+    # get all device machine id's with this tournament id
+    machine_ids = getMachineIdsByTournamentId(int(id))
+    # one by one iterate over machine id's and clear their state
+    for i in machine_ids:
+        clearDeviceCourtTournamentIdSidState(i)
     status = deleteTournamentDb(id)
     # deletes any connections in the Courts table
 
@@ -430,6 +434,12 @@ def archive():
 
     if not status:
         return {}, 500
+    
+    # get all device machine id's with this tournament id
+    machine_ids = getMachineIdsByTournamentId(int(tournament_id))
+    # one by one iterate over machine id's and clear their state
+    for i in machine_ids:
+        clearDeviceCourtTournamentIdSidState(i)
 
     return {}, 200
 

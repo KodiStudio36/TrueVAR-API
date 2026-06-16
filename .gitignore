@@ -4,4 +4,3 @@ __pycache__
 app.db
 *.log
 test.*
-client_secret.json

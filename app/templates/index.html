@@ -184,7 +184,7 @@
         </div>
 
         <!-- UPCOMING -->
-        <div class="event-state upcoming-state">
+        <!-- <div class="event-state upcoming-state">
             <div class="state-label"><span></span>UPCOMING EVENT</div>
             <div class="event-grid">
                 <div class="event-main">
@@ -206,7 +206,7 @@
                     <a href="https://www.youtube.com/@TrueVAR" target="_blank" class="event-btn">WATCH ON YOUTUBE</a>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <!-- ARCHIVE -->
         <div class="event-state archive-state">
@@ -228,9 +228,10 @@
                         <p>First Slovak poomsae livestream ever done.</p>
                         <div class="archive-bottom"><strong>250+ ATHLETES</strong><span>WATCH REPLAY →</span></div>
                     </a>
-                    <a href="https://www.youtube.com/@TrueVAR" target="_blank" class="archive-card featured">
-                        <div class="archive-top"><span>KYORUGI</span><span>2025</span></div>
-                        <h4>BRATISLAVA<br>OPEN 2025</h4>
+                    <a href="https://www.youtube.com/live/figH6iCavEw?t=3084&is=q0BCVRh9zifSdQIJ" target="_blank"
+                        class="archive-card featured">
+                        <div class="archive-top"><span>KYORUGI</span><span>2026</span></div>
+                        <h4>BRATISLAVA<br>OPEN 2026</h4>
                         <p>Biggest Slovak tournament of the year, executed flawlessly with professional IVR.</p>
                         <div class="archive-bottom"><strong>450+ ATHLETES</strong><span>WATCH REPLAY →</span></div>
                     </a>
@@ -328,8 +329,8 @@
             <div class="request-left">
                 <p class="section-kicker">WORK WITH US</p>
                 <h2 class="request-title">REQUEST<br>A TOURNAMENT</h2>
-                <p class="request-desc">Fill in the details and we'll get back to you within 48 hours with a tailored
-                    production plan for your event.</p>
+                <p class="request-desc">Contact us using WhatsApp or email and we respond within 24 hours. We will
+                    discuss and plan your tournament from top to bottom, with flawless execution.</p>
                 <div class="request-contact-list">
                     <a href="https://wa.me/message/K6JLVH2NTIJJK1" target="_blank" class="request-contact-item">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16"
@@ -350,7 +351,7 @@
                 </div>
             </div>
 
-            <div class="request-right">
+            <!-- <div class="request-right">
                 <div class="form-wrap" id="requestForm">
                     <div class="form-row">
                         <div class="form-group">
@@ -408,7 +409,7 @@
                         <span>✓</span> REQUEST SENT — WE'LL BE IN TOUCH WITHIN 48 HOURS.
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     </section>
 
@@ -467,37 +468,37 @@
     </footer>
 
     <script>
-        // Countdown
-        function updateCountdown() {
-            const target = new Date('2026-06-06T09:00:00');
-            const now = new Date();
-            const diff = target - now;
-            if (diff <= 0) {
-                document.getElementById('days').textContent = '00';
-                document.getElementById('hours').textContent = '00';
-                document.getElementById('mins').textContent = '00';
-                return;
-            }
-            document.getElementById('days').textContent = String(Math.floor(diff / 86400000)).padStart(2, '0');
-            document.getElementById('hours').textContent = String(Math.floor((diff % 86400000) / 3600000)).padStart(2, '0');
-            document.getElementById('mins').textContent = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
-        }
-        updateCountdown();
-        setInterval(updateCountdown, 60000);
+        // // Countdown
+        // function updateCountdown() {
+        //     const target = new Date('2026-06-06T09:00:00');
+        //     const now = new Date();
+        //     const diff = target - now;
+        //     if (diff <= 0) {
+        //         document.getElementById('days').textContent = '00';
+        //         document.getElementById('hours').textContent = '00';
+        //         document.getElementById('mins').textContent = '00';
+        //         return;
+        //     }
+        //     document.getElementById('days').textContent = String(Math.floor(diff / 86400000)).padStart(2, '0');
+        //     document.getElementById('hours').textContent = String(Math.floor((diff % 86400000) / 3600000)).padStart(2, '0');
+        //     document.getElementById('mins').textContent = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+        // }
+        // updateCountdown();
+        // setInterval(updateCountdown, 60000);
 
-        // Court selector
-        document.querySelectorAll('.court-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.court-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            });
-        });
+        // // Court selector
+        // document.querySelectorAll('.court-btn').forEach(btn => {
+        //     btn.addEventListener('click', () => {
+        //         document.querySelectorAll('.court-btn').forEach(b => b.classList.remove('active'));
+        //         btn.classList.add('active');
+        //     });
+        // });
 
-        // Form submit
-        function handleSubmit() {
-            document.getElementById('formSuccess').classList.add('visible');
-            setTimeout(() => document.getElementById('formSuccess').classList.remove('visible'), 5000);
-        }
+        // // Form submit
+        // function handleSubmit() {
+        //     document.getElementById('formSuccess').classList.add('visible');
+        //     setTimeout(() => document.getElementById('formSuccess').classList.remove('visible'), 5000);
+        // }
 
         // Navbar scroll
         window.addEventListener('scroll', () => {
